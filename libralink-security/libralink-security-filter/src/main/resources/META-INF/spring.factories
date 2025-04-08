@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  io.libralink.platform.security.filter.config.SecurityFilterConfig

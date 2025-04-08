@@ -30,11 +30,6 @@ public class ApplicationConfig {
         return new ObjectMapper();
     }
 
-//    @Bean
-//    public AuthorizationFilter authorizationFilter(@Value(value = "${libralink.token.jwk}") String jwk) {
-//        return new AuthorizationFilter(jwk);
-//    }
-
     @Bean
     public RestTemplate restTemplate()
             throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {

@@ -1,8 +1,14 @@
 package io.libralink.platform.suite.config;
 
+import io.libralink.platform.common.ApplicationException;
+import io.libralink.platform.security.common.constants.SecurityConstants;
+import io.libralink.platform.security.filter.*;
+import io.libralink.platform.security.filter.service.DefaultAuthorizationFilter;
+import io.libralink.platform.security.service.TokenService;
+import io.libralink.platform.security.service.UserProvisioningService;
+import io.libralink.platform.security.service.dto.UserDTO;
+import io.libralink.platform.suite.oauth2.CustomOAuth2User;
 import io.libralink.platform.suite.oauth2.CustomOAuth2UserService;
-import io.libralink.platform.suite.service.TokenService;
-import io.libralink.platform.wallet.services.AccountManagementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +27,6 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.UUID;
-
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -36,23 +40,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value(value = "${libralink.token.jwk}")
     private String jwk;
 
-//    @Autowired
-//    private PaymentClient paymentClient;
-
     @Autowired
     private CustomOAuth2UserService oAuth2UserService;
 
     @Autowired
-    private TokenService tokenService;
-
-//    @Autowired
-//    private AuthorizationFilter authorizationFilter;
-//
-//    @Autowired
-//    private UserManagementService userManagementService;
+    private AuthorizationFilter authorizationFilter;
 
     @Autowired
-    private AccountManagementService walletManagementService;
+    private UserProvisioningService userProvisioningService;
+
+    @Autowired
+    private CookieManagementService cookieManagementService;
+
+    @Autowired
+    private TokenService tokenService;
 
     @Bean
     public ClientRegistrationRepository clientRegistrationRepository(
@@ -68,15 +69,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http
-//            .addFilterAfter(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeRequests(a -> a
                 .antMatchers("/", "/error",
-                    "/v2/api-docs",
-                    "/v2/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/webjars/**",
-                    "/swagger-resources/**",
+                    "/v2/api-docs", "/v2/api-docs/**",
+                    "/swagger-ui/**", "/swagger-ui.html", "/webjars/**", "/swagger-resources/**",
                     "/api/logout",
                     "/account/**", "/echeck/**", "/processor/**"
                 ).permitAll()
@@ -85,14 +82,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
-            .csrf().disable();
+            .csrf().disable()
+            .oauth2Login()
+                .userInfoEndpoint().userService(oAuth2UserService)
+            .and()
+                .successHandler((request, response, authentication) -> {
+                    CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
+
+                    final String platform = "github";
+                    final String platformUserId = oauthUser.getAttribute("id").toString();
+
+                    try {
+                        UserDTO user = userProvisioningService.provisionUser(platform, platformUserId);
+
+                        String jwt = tokenService.issueToken(user.getUserId(), user.getRole());
+                        cookieManagementService.addCookieToResponse(response, SecurityConstants.COOKIE_NAME_TOKEN,
+                                SecurityConstants.COOKIE_PATH, SecurityConstants.COOKIE_DOMAIN, jwt);
+                        response.sendRedirect(String.format("%s?action=login", libralinkRedirectUrl));
+
+                    } catch (ApplicationException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     private ClientRegistration githubDefaultClientRegistration(String clientId, String clientSecret) {
         return CommonOAuth2Provider.GITHUB.getBuilder("github")
             .clientId(clientId)
             .clientSecret(clientSecret)
-            .scope("read:user", "user:email", "repo")
+            .scope("read:user", "user:email")
             .build();
     }
 }

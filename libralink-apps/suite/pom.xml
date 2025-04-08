@@ -35,6 +35,18 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Security -->
+        <dependency>
+            <groupId>io.libralink.platform</groupId>
+            <artifactId>libralink-security-filter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.libralink.platform</groupId>
+            <artifactId>libralink-security-services</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Wallet -->
         <dependency>
             <groupId>io.libralink.platform</groupId>
