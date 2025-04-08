@@ -34,6 +34,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 
+    @Value("${libralink.local.development.disable.csrf:false}")
+    private boolean springCsrfDisable;
+
     @Value("${libralink.auth.redirect.url}")
     private String libralinkRedirectUrl;
 
@@ -82,7 +85,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
-            .csrf().disable()
             .oauth2Login()
                 .userInfoEndpoint().userService(oAuth2UserService)
             .and()
@@ -104,6 +106,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         throw new RuntimeException(e);
                     }
                 });
+
+        if (springCsrfDisable) {
+            http.csrf().disable();
+        }
     }
 
     private ClientRegistration githubDefaultClientRegistration(String clientId, String clientSecret) {
