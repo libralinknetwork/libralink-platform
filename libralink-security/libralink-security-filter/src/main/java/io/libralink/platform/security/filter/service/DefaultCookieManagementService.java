@@ -58,6 +58,7 @@ public class DefaultCookieManagementService implements CookieManagementService {
         Cookie responseCookie = new Cookie(name, value);
         responseCookie.setPath(path);
         responseCookie.setDomain(domain);
+        responseCookie.setSecure(!isSecureCookieDisabled);
         response.addCookie(responseCookie);
     }
 }
