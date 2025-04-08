@@ -3,6 +3,7 @@ package io.libralink.platform.security.filter.service;
 import io.libralink.platform.security.filter.CookieManagementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +13,9 @@ import java.util.Optional;
 public class DefaultCookieManagementService implements CookieManagementService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCookieManagementService.class);
+
+    @Value("libralink.local.development.disable.secure.cookie:false")
+    private boolean isSecureCookieDisabled;
 
     @Override
     public Optional<String> getCookieValue(HttpServletRequest request, String cookieName) {
@@ -40,6 +44,7 @@ public class DefaultCookieManagementService implements CookieManagementService {
         responseCookie.setDomain(domain);
         responseCookie.setValue("");
         responseCookie.setMaxAge(-1);
+        responseCookie.setSecure(!isSecureCookieDisabled);
         response.addCookie(responseCookie);
     }
 
