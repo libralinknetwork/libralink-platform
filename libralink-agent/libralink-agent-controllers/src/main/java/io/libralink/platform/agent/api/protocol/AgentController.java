@@ -7,12 +7,13 @@ import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
 import io.libralink.client.payment.protocol.envelope.SignatureReason;
 import io.libralink.client.payment.util.EnvelopeUtils;
 import io.libralink.platform.agent.exceptions.AgentProtocolException;
+import io.libralink.platform.agent.services.AgentService;
 import io.libralink.platform.agent.services.AgentStatusService;
+import io.libralink.platform.wallet.integration.dto.BalanceDTO;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,36 +21,45 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-@Api(tags = "Account")
+@Api(tags = "Agent")
 @RestController
-public class AccountController {
+public class AgentController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AgentController.class);
 
     @Autowired
-    private AgentStatusService agentStatusService;
+    private AgentService agentService;
 
-    @GetMapping("/protocol/account/register")
-    public String register() throws Exception {
-        return "OK";
+    @PostMapping(value = "/protocol/agent/register", produces = "application/json")
+    public Envelope register(@RequestBody Envelope envelope) throws Exception {
+
+        return null;
     }
 
-    @PostMapping(value = "/protocol/account/balance", produces = "application/json")
+    @PostMapping(value = "/protocol/agent/balance", produces = "application/json")
     public Envelope getBalance(@RequestBody Envelope envelope) throws Exception {
 
-        final String address = ((GetBalanceRequest) envelope.getContent().getEntity()).getPub();
-        LOG.info("Getting Balance for address {}", address);
+        final Optional<String> pubKeyOption = EnvelopeUtils.extractEntityAttribute(envelope, GetBalanceRequest.class, GetBalanceRequest::getPub);
+        if (pubKeyOption.isEmpty()) {
+            throw new AgentProtocolException();
+        }
 
-        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, address);
+        final String pubKey = pubKeyOption.get();
+
+        /* Verify all signatures, aka authentication & authorization */
+        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
         if (signedEnvelopeOption.isEmpty()) {
             throw new AgentProtocolException();
         }
 
+        /* Call Service */
+        BalanceDTO balanceDTO = agentService.getBalance(pubKey);
+
         GetBalanceResponse response = GetBalanceResponse.builder()
-                .addAvailable(BigDecimal.valueOf(10))
-                .addPending(BigDecimal.ZERO)
-                .addTotal(BigDecimal.valueOf(10))
-                .addPub(address)
+                .addAvailable(balanceDTO.getAvailable())
+                .addPending(balanceDTO.getPending())
+                .addTotal(balanceDTO.getAvailable().add(balanceDTO.getPending()))
+                .addPub(pubKey)
                 .build();
 
         return Envelope.builder()

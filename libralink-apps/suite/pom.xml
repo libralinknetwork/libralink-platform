@@ -53,6 +53,11 @@
             <artifactId>libralink-wallet-controllers</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.libralink.platform</groupId>
+            <artifactId>libralink-wallet-integration-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Agent -->
         <dependency>

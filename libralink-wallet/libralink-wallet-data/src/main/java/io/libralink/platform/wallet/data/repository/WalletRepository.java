@@ -13,6 +13,9 @@ import java.util.Optional;
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, String> {
 
+    @Query("from Wallet w WHERE w.publicKey = ?1")
+    Optional<Wallet> findByPublicKey(String pubKey);
+
     @Query("from Wallet w WHERE w.userId = ?1")
     Optional<Wallet> findByUser(String userId);
 }

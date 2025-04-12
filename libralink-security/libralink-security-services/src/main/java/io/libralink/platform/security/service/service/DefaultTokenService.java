@@ -26,7 +26,15 @@ public class DefaultTokenService implements TokenService {
         this.tokenExpirationHours = tokenExpirationHours;
     }
 
+    public String issueSystemToken() {
+        return this.issueTokenInternal(UUID.randomUUID(), "SYSTEM", 30L);
+    }
+
     public String issueToken(UUID userId, String role) {
+        return this.issueTokenInternal(userId, role, null);
+    }
+
+    private String issueTokenInternal(UUID userId, String role, Long tokenExpirationSec) {
         LocalDateTime now = LocalDateTime.now();
         JwtBuilder builder = Jwts.builder()
                 .setIssuer("Libralink")
@@ -35,7 +43,11 @@ public class DefaultTokenService implements TokenService {
                 .setIssuedAt(new Date(now.toInstant(ZoneOffset.UTC).toEpochMilli()))
                 .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode(jwk));
 
-        builder.setExpiration(new Date(now.plusHours(tokenExpirationHours).toInstant(ZoneOffset.UTC).toEpochMilli()));
+        if (tokenExpirationSec == null) {
+            builder.setExpiration(new Date(now.plusHours(tokenExpirationHours).toInstant(ZoneOffset.UTC).toEpochMilli()));
+        } else {
+            builder.setExpiration(new Date(now.plusSeconds(tokenExpirationSec).toInstant(ZoneOffset.UTC).toEpochMilli()));
+        }
         return builder.compact();
     }
 }
