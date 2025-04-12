@@ -1,8 +1,8 @@
 package io.libralink.platform.wallet.api;
 
 import io.libralink.platform.common.ApplicationException;
-import io.libralink.platform.wallet.dto.AccountNumberDTO;
-import io.libralink.platform.wallet.dto.TransactionDTO;
+import io.libralink.platform.wallet.dto.AccountNameDTO;
+import io.libralink.platform.wallet.dto.AccountTransactionDTO;
 import io.libralink.platform.wallet.dto.AccountDTO;
 import io.libralink.platform.wallet.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class WalletController {
 
     @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/wallet/accounts")
-    public List<AccountNumberDTO> getAccounts(@AuthenticationPrincipal Principal principal) {
+    public List<AccountNameDTO> getAccounts(@AuthenticationPrincipal Principal principal) {
 //        return accountService.getUserAccounts(principal.getUserId());
 
         return new ArrayList<>();
@@ -44,7 +44,7 @@ public class WalletController {
 
     @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/wallet/accounts/{accountId}/transactions")
-    public List<TransactionDTO> getTransactions(
+    public List<AccountTransactionDTO> getTransactions(
             @PathVariable(name = "accountId") UUID accountId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,

@@ -1,15 +1,15 @@
 package io.libralink.platform.wallet.services;
 
 import io.libralink.platform.common.ApplicationException;
-import io.libralink.platform.wallet.converter.AccountNumberConverter;
-import io.libralink.platform.wallet.converter.TransactionConverter;
+import io.libralink.platform.wallet.converter.AccountNameConverter;
+import io.libralink.platform.wallet.converter.AccountTransactionConverter;
 import io.libralink.platform.wallet.converter.AccountConverter;
-import io.libralink.platform.wallet.data.entity.Transaction;
+import io.libralink.platform.wallet.data.entity.AccountTransaction;
 import io.libralink.platform.wallet.data.entity.Account;
-import io.libralink.platform.wallet.data.repository.TransactionRepository;
+import io.libralink.platform.wallet.data.repository.AccountTransactionRepository;
 import io.libralink.platform.wallet.data.repository.AccountRepository;
-import io.libralink.platform.wallet.dto.AccountNumberDTO;
-import io.libralink.platform.wallet.dto.TransactionDTO;
+import io.libralink.platform.wallet.dto.AccountNameDTO;
+import io.libralink.platform.wallet.dto.AccountTransactionDTO;
 import io.libralink.platform.wallet.dto.AccountDTO;
 import io.libralink.platform.wallet.exceptions.AccountNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,14 +28,18 @@ import java.util.UUID;
 public class AccountService {
 
     @Autowired
-    private TransactionRepository transactionRepository;
+    private AccountTransactionRepository transactionRepository;
 
     @Autowired
     private AccountRepository accountRepository;
 
-    public List<AccountNumberDTO> getUserAccounts(String userId) {
-        List<Account> accounts = accountRepository.findByUser(userId);
-        return AccountNumberConverter.toDTOs(accounts);
+    public List<AccountNameDTO> getUserAccounts(String userId) {
+
+//        String walletId = ...
+//        List<Account> accounts = accountRepository.findByWallet(userId);
+//        return AccountNameConverter.toDTOs(accounts);
+
+        return AccountNameConverter.toDTOs(new ArrayList<>());
     }
 
     public AccountDTO getUserAccount(UUID userId, UUID accountId) throws ApplicationException {
@@ -46,10 +51,9 @@ public class AccountService {
         }
     }
 
-    public List<TransactionDTO> getAccountTransactions(UUID userId, UUID accountId, int page, int size) {
+    public List<AccountTransactionDTO> getAccountTransactions(UUID accountId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Transaction> txPage = transactionRepository.findByUserAccount(
-                userId.toString(), accountId.toString(), pageable);
-        return TransactionConverter.toDTOs(txPage.toList());
+        Page<AccountTransaction> txPage = transactionRepository.findByAccount(accountId.toString(), pageable);
+        return AccountTransactionConverter.toDTOs(txPage.toList());
     }
 }

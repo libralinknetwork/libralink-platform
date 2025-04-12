@@ -14,9 +14,9 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
 
-    @Query("from Account b WHERE b.userId = ?1")
-    List<Account> findByUser(String userId);
+    @Query("from Account b WHERE b.walletId = ?1")
+    List<Account> findByWallet(String walletId);
 
-    @Query("from Account a WHERE a.userId = ?1 and a.id = ?2")
-    Optional<Account> findByAccountId(String userId, String accountId);
+    @Query("from Account a WHERE a.walletId = ?1 and a.id = ?2")
+    Optional<Account> findByAccountId(String walletId, String accountId);
 }

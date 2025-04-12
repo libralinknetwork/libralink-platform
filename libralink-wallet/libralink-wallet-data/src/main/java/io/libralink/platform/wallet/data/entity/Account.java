@@ -6,28 +6,26 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "account")
 public class Account {
 
     @Id
-    @Column(name = "a_id")
+    @Column(name = "account_id")
     private String id;
+
+    @Column(name = "wallet_id")
+    private String walletId;
+
+    private String name;
 
     @Enumerated(EnumType.STRING)
     private AccountType type;
 
-    @Column(name = "number")
-    private String accountNumber;
-
-    @Column(name = "u_id")
-    private String userId;
-
-    private String currency;
-
     @Column(name = "updated_at")
     private Long updatedAt;
 
-    private BigDecimal amount;
+    private BigDecimal available;
+    private BigDecimal pending;
 
     public String getId() {
         return id;
@@ -35,6 +33,22 @@ public class Account {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getWalletId() {
+        return walletId;
+    }
+
+    public void setWalletId(String walletId) {
+        this.walletId = walletId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public AccountType getType() {
@@ -45,30 +59,6 @@ public class Account {
         this.type = type;
     }
 
-    public String getAccountNumber() {
-        return accountNumber;
-    }
-
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
     public Long getUpdatedAt() {
         return updatedAt;
     }
@@ -77,11 +67,19 @@ public class Account {
         this.updatedAt = updatedAt;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public BigDecimal getAvailable() {
+        return available;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setAvailable(BigDecimal available) {
+        this.available = available;
+    }
+
+    public BigDecimal getPending() {
+        return pending;
+    }
+
+    public void setPending(BigDecimal pending) {
+        this.pending = pending;
     }
 }

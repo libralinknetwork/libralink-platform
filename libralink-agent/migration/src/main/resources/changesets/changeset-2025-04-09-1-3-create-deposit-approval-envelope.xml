@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="1" author="drkhu">
+
+        <createTable tableName="deposit_approval_envelope">
+            <column name="envelope_id" type="varchar(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_deposit_approval_envelope_id"/>
+            </column>
+            <column name="agent_id" type="varchar(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

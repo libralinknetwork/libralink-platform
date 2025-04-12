@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="1" author="drkhu">
+
+        <createTable tableName="agent">
+            <column name="agent_id" type="varchar(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_agent_id"/>
+            </column>
+            <column name="account_id" type="varchar(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="public_key" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="bool">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

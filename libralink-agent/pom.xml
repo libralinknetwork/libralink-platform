@@ -14,6 +14,7 @@
     <artifactId>libralink-agent</artifactId>
 
     <modules>
+        <module>libralink-agent-data</module>
         <module>libralink-agent-services</module>
         <module>libralink-agent-integration</module>
         <module>libralink-agent-controllers</module>

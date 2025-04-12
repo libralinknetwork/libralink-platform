@@ -19,8 +19,6 @@ public class DefaultTokenParsingService implements TokenParsingService {
 
     @Override
     public Jws<Claims> parse(String jwtToken) throws JwtException {
-        LOG.warn("Default DefaultTokenParsingService#parse called");
-
         return Jwts.parser()
                 .setSigningKey(TextCodec.BASE64.decode(jwk))
                 .parseClaimsJws(jwtToken);

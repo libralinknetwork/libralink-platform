@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import io.libralink.platform.wallet.data.enums.AccountType;
+import io.libralink.platform.wallet.data.enums.Currency;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,16 +12,16 @@ import java.time.LocalDateTime;
 public class AccountDTO {
 
     private String id;
-    private String number;
+    private String walletId;
+    private String name;
     private AccountType type;
-    private String userId;
-    private String currency;
+    private Currency currency;
+    private BigDecimal available;
+    private BigDecimal pending;
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
-
-    private BigDecimal amount;
 
     public String getId() {
         return id;
@@ -30,20 +31,44 @@ public class AccountDTO {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getWalletId() {
+        return walletId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setWalletId(String walletId) {
+        this.walletId = walletId;
     }
 
-    public String getCurrency() {
-        return currency;
+    public String getName() {
+        return name;
     }
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public AccountType getType() {
+        return type;
+    }
+
+    public void setType(AccountType type) {
+        this.type = type;
+    }
+
+    public BigDecimal getAvailable() {
+        return available;
+    }
+
+    public void setAvailable(BigDecimal available) {
+        this.available = available;
+    }
+
+    public BigDecimal getPending() {
+        return pending;
+    }
+
+    public void setPending(BigDecimal pending) {
+        this.pending = pending;
     }
 
     public LocalDateTime getUpdatedAt() {
@@ -54,27 +79,11 @@ public class AccountDTO {
         this.updatedAt = updatedAt;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public Currency getCurrency() {
+        return currency;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public AccountType getType() {
-        return type;
-    }
-
-    public void setType(AccountType type) {
-        this.type = type;
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 }

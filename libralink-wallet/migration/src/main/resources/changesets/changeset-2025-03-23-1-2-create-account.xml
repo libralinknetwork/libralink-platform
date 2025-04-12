@@ -5,26 +5,26 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
     <changeSet id="1" author="drkhu">
-        <createTable tableName="accounts">
-            <column name="a_id" type="varchar(36)">
+        <createTable tableName="account">
+            <column name="account_id" type="varchar(36)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_account_id"/>
             </column>
+            <column name="wallet_id" type="varchar(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
             <column name="type" type="varchar(6)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="number" type="varchar(36)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="u_id" type="varchar(36)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="currency" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="updated_at" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="amount" type="decimal">
+            <column name="available" type="decimal">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pending" type="decimal">
                 <constraints nullable="false"/>
             </column>
         </createTable>

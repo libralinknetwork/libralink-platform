@@ -31,6 +31,12 @@
                 <version>${version.swagger}</version>
             </dependency>
             <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>1.6.15</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>

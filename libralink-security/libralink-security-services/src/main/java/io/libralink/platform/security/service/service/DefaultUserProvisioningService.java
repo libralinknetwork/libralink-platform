@@ -14,8 +14,6 @@ public class DefaultUserProvisioningService implements UserProvisioningService {
 
     @Override
     public UserDTO provisionUser(String platform, String platformUserId) throws ApplicationException {
-        LOG.warn("Default DefaultUserProvisioningService#provisionUser called");
-
         /* TODO */
 
 /*

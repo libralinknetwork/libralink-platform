@@ -1,8 +1,6 @@
 package io.libralink.platform.security.filter.service;
 
 import io.libralink.platform.security.filter.CookieManagementService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.http.Cookie;
@@ -12,15 +10,11 @@ import java.util.Optional;
 
 public class DefaultCookieManagementService implements CookieManagementService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultCookieManagementService.class);
-
-    @Value("libralink.local.development.disable.secure.cookie:false")
+    @Value("${libralink.local.development.disable.secure.cookie:false}")
     private boolean isSecureCookieDisabled;
 
     @Override
     public Optional<String> getCookieValue(HttpServletRequest request, String cookieName) {
-        LOG.warn("Default DefaultCookieManagementService#getCookieValue called");
-
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return Optional.empty();
@@ -37,8 +31,6 @@ public class DefaultCookieManagementService implements CookieManagementService {
 
     @Override
     public void removeCookie(HttpServletResponse response, String name, String path, String domain) {
-        LOG.warn("Default DefaultCookieManagementService#removeCookie called");
-
         Cookie responseCookie = new Cookie(name, null);
         responseCookie.setPath(path);
         responseCookie.setDomain(domain);
@@ -48,13 +40,8 @@ public class DefaultCookieManagementService implements CookieManagementService {
         response.addCookie(responseCookie);
     }
 
-    /**
-     * DEVELOPMENT PURPOSE ONLY
-     */
     @Override
     public void addCookieToResponse(HttpServletResponse response, String name, String path, String domain, String value) {
-        LOG.warn("Default DefaultCookieManagementService#addCookieToResponse called");
-
         Cookie responseCookie = new Cookie(name, value);
         responseCookie.setPath(path);
         responseCookie.setDomain(domain);

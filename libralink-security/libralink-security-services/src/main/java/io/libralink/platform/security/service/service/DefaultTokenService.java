@@ -27,8 +27,6 @@ public class DefaultTokenService implements TokenService {
     }
 
     public String issueToken(UUID userId, String role) {
-        LOG.warn("Default DefaultTokenService#issueToken called");
-
         LocalDateTime now = LocalDateTime.now();
         JwtBuilder builder = Jwts.builder()
                 .setIssuer("Libralink")
