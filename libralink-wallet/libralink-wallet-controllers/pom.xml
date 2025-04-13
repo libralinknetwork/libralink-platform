@@ -50,7 +50,6 @@
         <dependency>
             <groupId>io.libralink.client</groupId>
             <artifactId>libralink-client-web3j</artifactId>
-            <version>1.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

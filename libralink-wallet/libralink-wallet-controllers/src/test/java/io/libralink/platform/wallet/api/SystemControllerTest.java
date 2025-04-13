@@ -3,7 +3,7 @@ package io.libralink.platform.wallet.api;
 import io.libralink.client.payment.util.JsonUtils;
 import io.libralink.platform.wallet.integration.dto.IntegrationECheckDTO;
 import io.libralink.platform.wallet.services.AccountService;
-import io.libralink.platform.wallet.services.ECheckIssueService;
+import io.libralink.platform.wallet.services.ECheckService;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class SystemControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private ECheckIssueService eCheckIssueService;
+    private ECheckService eCheckIssueService;
 
     @MockBean
     private AccountService accountService;

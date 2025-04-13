@@ -15,10 +15,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>2.2.2.RELEASE</spring-boot.version>
         <version.swagger>2.9.2</version.swagger>
+        <version.libralink.client.web3>1.4.0</version.libralink.client.web3>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.libralink.client</groupId>
+                <artifactId>libralink-client-web3j</artifactId>
+                <version>${version.libralink.client.web3}</version>
+            </dependency>
             <!-- Swagger -->
             <dependency>
                 <groupId>io.springfox</groupId>

@@ -2,7 +2,7 @@ package io.libralink.platform.wallet.api;
 
 import io.libralink.platform.wallet.integration.dto.BalanceDTO;
 import io.libralink.platform.wallet.integration.dto.IntegrationECheckDTO;
-import io.libralink.platform.wallet.services.ECheckIssueService;
+import io.libralink.platform.wallet.services.ECheckService;
 import io.libralink.platform.wallet.services.WalletService;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class SystemController {
     private static final Logger LOG = LoggerFactory.getLogger(SystemController.class);
 
     @Autowired
-    private ECheckIssueService eCheckIssueService;
+    private ECheckService eCheckIssueService;
 
     @Autowired
     private WalletService walletService;

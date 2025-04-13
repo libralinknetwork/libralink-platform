@@ -1,15 +1,14 @@
 package io.libralink.platform.agent.api;
 
-import io.libralink.client.payment.protocol.api.account.RegisterKeyRequest;
-import io.libralink.client.payment.protocol.api.balance.GetBalanceRequest;
+import io.libralink.client.payment.protocol.api.processor.GetProcessorsRequest;
 import io.libralink.client.payment.protocol.envelope.Envelope;
 import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
 import io.libralink.client.payment.protocol.envelope.SignatureReason;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.JsonUtils;
-import io.libralink.platform.agent.api.protocol.AgentController;
+import io.libralink.platform.agent.api.protocol.ProcessorController;
 import io.libralink.platform.agent.services.*;
-import io.libralink.platform.wallet.integration.dto.BalanceDTO;
+import io.libralink.platform.common.Tuple2;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,19 +20,19 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.web3j.crypto.Credentials;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AgentController.class)
+@WebMvcTest(ProcessorController.class)
 @ContextConfiguration(classes = { ApiTestConfiguration.class })
-public class AgentControllerTest {
+public class ProcessorControllerTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AgentControllerTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessorControllerTest.class);
 
     final private String PAYER_PK = "7af8df13f6aebcbd9edd369bb5f67bf7523517685491fea776bb547910ff5673";
     final private Credentials PAYER_CRED = Credentials.create(PAYER_PK);
@@ -60,11 +59,12 @@ public class AgentControllerTest {
     private ProcessorService processorService;
 
     @Test
-    public void test_register_endpoint() throws Exception {
+    public void test_get_processors_endpoint() throws Exception {
 
-        RegisterKeyRequest request = RegisterKeyRequest.builder()
+        when(processorService.getTrustedProcessors()).thenReturn(List.of(Tuple2.create("trusted_proc_key", true)));
+
+        GetProcessorsRequest request = GetProcessorsRequest.builder()
                 .addPub(PAYER_CRED.getAddress())
-                .addChallenge("challenge")
                 .build();
 
         Envelope envelope = Envelope.builder()
@@ -76,44 +76,11 @@ public class AgentControllerTest {
                 .build();
         Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, SignatureReason.IDENTITY);
         String body = JsonUtils.toJson(signedEnvelope);
-
-        mockMvc.perform(post("/protocol/agent/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void test_account_balance_endpoint() throws Exception {
-
-        BalanceDTO getBalanceResponse = new BalanceDTO();
-        getBalanceResponse.setPubKey(PAYER_CRED.getAddress());
-        getBalanceResponse.setPending(BigDecimal.valueOf(100));
-        getBalanceResponse.setAvailable(BigDecimal.valueOf(50));
-        getBalanceResponse.setCurrency("USDC");
-
-        when(agentService.getBalance(anyString())).thenReturn(getBalanceResponse);
-
-        GetBalanceRequest request = GetBalanceRequest.builder()
-            .addPub(PAYER_CRED.getAddress())
-                .build();
-
-        EnvelopeContent envelopeContent = EnvelopeContent.builder()
-                .addEntity(request)
-                .build();
-
-        Envelope envelope = Envelope.builder()
-                .addContent(envelopeContent)
-                .addId(UUID.randomUUID())
-                .build();
-
-        Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, SignatureReason.IDENTITY);
-        String body = JsonUtils.toJson(signedEnvelope);
         LOG.info(body);
 
-        mockMvc.perform(post("/protocol/agent/balance")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
+        mockMvc.perform(post("/protocol/processor/trusted")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk());
     }
 }
