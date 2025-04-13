@@ -30,13 +30,13 @@ public class ProcessorController {
     @PostMapping(value = "/protocol/processor/trusted", produces = "application/json")
     public Envelope getTrustedProcessors(@RequestBody Envelope envelope) throws Exception {
 
-        final Optional<String> pubKeyOption = EnvelopeUtils.extractEntityAttribute(envelope, GetProcessorsRequest.class, GetProcessorsRequest::getPub);
-        if (pubKeyOption.isEmpty()) {
+        final Optional<String> addressOption = EnvelopeUtils.extractEntityAttribute(envelope, GetProcessorsRequest.class, GetProcessorsRequest::getAddress);
+        if (addressOption.isEmpty()) {
             throw new AgentProtocolException();
         }
 
         /* Verify signature */
-        final String pubKey = pubKeyOption.get();
+        final String pubKey = addressOption.get();
         Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
         if (signedEnvelopeOption.isEmpty()) {
             throw new AgentProtocolException();
@@ -46,7 +46,7 @@ public class ProcessorController {
         List<ProcessorDetails> processorDetails = new ArrayList<>();
         for (Tuple2<String, Boolean> detail: trustedProcessors) {
             processorDetails.add(ProcessorDetails.builder()
-                        .addPub(detail.getFirst())
+                        .addAddress(detail.getFirst())
                         .addDefault(detail.getSecond())
                     .build());
         }

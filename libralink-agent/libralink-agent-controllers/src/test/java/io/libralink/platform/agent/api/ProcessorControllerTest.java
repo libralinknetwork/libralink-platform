@@ -23,7 +23,6 @@ import org.web3j.crypto.Credentials;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -64,7 +63,7 @@ public class ProcessorControllerTest {
         when(processorService.getTrustedProcessors()).thenReturn(List.of(Tuple2.create("trusted_proc_key", true)));
 
         GetProcessorsRequest request = GetProcessorsRequest.builder()
-                .addPub(PAYER_CRED.getAddress())
+                .addAddress(PAYER_CRED.getAddress())
                 .build();
 
         Envelope envelope = Envelope.builder()

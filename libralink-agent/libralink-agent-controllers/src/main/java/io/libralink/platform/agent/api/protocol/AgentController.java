@@ -35,16 +35,16 @@ public class AgentController {
     @PostMapping(value = "/protocol/agent/register", produces = "application/json")
     public Envelope register(@RequestBody Envelope envelope) throws Exception {
 
-        final Optional<String> pubKeyOption = EnvelopeUtils.extractEntityAttribute(envelope, RegisterKeyRequest.class, RegisterKeyRequest::getPub);
+        final Optional<String> addressOption = EnvelopeUtils.extractEntityAttribute(envelope, RegisterKeyRequest.class, RegisterKeyRequest::getAddress);
         final Optional<String> challengeOption = EnvelopeUtils.extractEntityAttribute(envelope, RegisterKeyRequest.class, RegisterKeyRequest::getChallenge);
 
-        if (pubKeyOption.isEmpty() || challengeOption.isEmpty()) {
+        if (addressOption.isEmpty() || challengeOption.isEmpty()) {
             throw new AgentProtocolException();
         }
 
         /* Verify signature */
-        final String pubKey = pubKeyOption.get();
-        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
+        final String address = addressOption.get();
+        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, address);
         if (signedEnvelopeOption.isEmpty()) {
             throw new AgentProtocolException();
         }
@@ -52,7 +52,7 @@ public class AgentController {
         /* TODO: register */
 
         RegisterKeyResponse response = RegisterKeyResponse.builder()
-                .addPub(pubKey)
+                .addAddress(address)
                 .build();
 
         return Envelope.builder()
@@ -72,22 +72,21 @@ public class AgentController {
             throw new AgentProtocolException();
         }
 
-        final String pubKey = EnvelopeUtils.extractEntityAttribute(envelope, GetBalanceRequest.class, GetBalanceRequest::getPub).get();
+        final String address = EnvelopeUtils.extractEntityAttribute(envelope, GetBalanceRequest.class, GetBalanceRequest::getAddress).get();
 
         /* Verify all signatures, aka authentication & authorization */
-        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
+        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, address);
         if (signedEnvelopeOption.isEmpty()) {
             throw new AgentProtocolException();
         }
 
         /* Call Service */
-        BalanceDTO balanceDTO = agentService.getBalance(pubKey);
+        BalanceDTO balanceDTO = agentService.getBalance(address);
 
         GetBalanceResponse response = GetBalanceResponse.builder()
                 .addAvailable(balanceDTO.getAvailable())
                 .addPending(balanceDTO.getPending())
-                .addTotal(balanceDTO.getAvailable().add(balanceDTO.getPending()))
-                .addPub(pubKey)
+                .addAddress(address)
                 .build();
 
         return Envelope.builder()

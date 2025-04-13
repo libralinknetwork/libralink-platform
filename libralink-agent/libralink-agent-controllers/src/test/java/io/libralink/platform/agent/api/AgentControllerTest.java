@@ -63,7 +63,7 @@ public class AgentControllerTest {
     public void test_register_endpoint() throws Exception {
 
         RegisterKeyRequest request = RegisterKeyRequest.builder()
-                .addPub(PAYER_CRED.getAddress())
+                .addAddress(PAYER_CRED.getAddress())
                 .addChallenge("challenge")
                 .build();
 
@@ -76,6 +76,7 @@ public class AgentControllerTest {
                 .build();
         Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, SignatureReason.IDENTITY);
         String body = JsonUtils.toJson(signedEnvelope);
+        LOG.info(body);
 
         mockMvc.perform(post("/protocol/agent/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -95,7 +96,7 @@ public class AgentControllerTest {
         when(agentService.getBalance(anyString())).thenReturn(getBalanceResponse);
 
         GetBalanceRequest request = GetBalanceRequest.builder()
-            .addPub(PAYER_CRED.getAddress())
+            .addAddress(PAYER_CRED.getAddress())
                 .build();
 
         EnvelopeContent envelopeContent = EnvelopeContent.builder()
