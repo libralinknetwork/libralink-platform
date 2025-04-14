@@ -5,27 +5,26 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
     <changeSet id="1" author="drkhu">
-
-        <createTable tableName="agent">
-            <column name="agent_id" type="varchar(36)">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_agent_id"/>
+        <createTable tableName="agent_register_confirm">
+            <column name="confirmation_id" type="varchar(36)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_register_confirmation_id"/>
+            </column>
+            <column name="updated_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="salt" type="varchar(36)">
+                <constraints nullable="false"/>
             </column>
             <column name="account_id" type="varchar(36)">
                 <constraints nullable="false"/>
             </column>
-            <column name="enabled" type="bool">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_at" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="public_key" type="text">
-                <constraints nullable="true"/>
-            </column>
-            <column name="address" type="text">
-                <constraints nullable="false"/>
-            </column>
-            <column name="algorithm" type="varchar(20)">
+            <column name="used_by_agent_id" type="varchar(36)">
                 <constraints nullable="true"/>
             </column>
         </createTable>

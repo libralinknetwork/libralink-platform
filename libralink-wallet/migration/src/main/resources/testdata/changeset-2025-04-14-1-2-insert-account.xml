@@ -1,0 +1,16 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="1" author="drkhu">
+        <insert tableName="account">
+            <column name="account_id" value="f5ac7d82-5a2e-4f9a-84af-869842fc9f40" />
+            <column name="wallet_id" value="0c26608d-8674-42df-ab4b-99f646f0df51" />
+            <column name="name" value="Default" />
+            <column name="type" value="DEBIT" />
+            <column name="updated_at" value="1744662199443" />
+            <column name="available" value="2000" />
+            <column name="pending" value="100" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>

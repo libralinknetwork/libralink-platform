@@ -24,8 +24,8 @@ public class AgentControllerExceptionHandler {
         LOG.warn(e.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-            .addCode(999)
-            .addMessage("Other Error")
+            .addCode(e.getCode())
+            .addMessage(e.getMessage())
             .build();
 
         Envelope errorEnvelope = Envelope.builder()

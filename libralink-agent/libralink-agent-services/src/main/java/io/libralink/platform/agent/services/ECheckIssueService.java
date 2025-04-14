@@ -29,7 +29,7 @@ public class ECheckIssueService {
                 .map(eCheck -> (ECheck) eCheck);
         if (eCheckOption.isEmpty()) {
             /* No E-Check details */
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Body", 999);
         }
         ECheck eCheck  = eCheckOption.get();
 

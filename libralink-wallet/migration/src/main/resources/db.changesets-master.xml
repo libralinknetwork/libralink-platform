@@ -7,5 +7,6 @@
     <property name="now" value="now()" dbms="postgresql"/>
     <property name="absolutePath" value="./" />
     <includeAll path="file:${absolutePath}/changesets" relativeToChangelogFile="false"/>
+    <includeAll path="file:${absolutePath}/testdata" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

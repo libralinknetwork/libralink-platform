@@ -49,7 +49,7 @@ public class ECheckController {
                 .map(eCheck -> (ECheck) eCheck);
         if (eCheckOption.isEmpty()) {
             /* No E-Check details */
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Body", 999);
         }
 
         /* Verify E-Check is signed by either Payer or Payee */
@@ -60,7 +60,7 @@ public class ECheckController {
                 .filter(env -> SignatureReason.IDENTITY.equals(env.getContent().getSigReason()));
 
         if (payeeIdentityEnvelopeOption.isEmpty() && payerIdentityEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
 
         return processorFeeService.preProcess(envelope);
@@ -83,7 +83,7 @@ public class ECheckController {
                 .map(eCheck -> (ECheck) eCheck);
         if (eCheckOption.isEmpty()) {
             /* No E-Check details */
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Body", 999);
         }
         ECheck eCheck  = eCheckOption.get();
 
@@ -91,7 +91,7 @@ public class ECheckController {
         Optional<Envelope> payerConfirmEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, eCheck.getPayer())
                 .filter(env -> SignatureReason.CONFIRM.equals(env.getContent().getSigReason()));
         if (payerConfirmEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
         Envelope payerConfirmEnvelope = payerConfirmEnvelopeOption.get();
 
@@ -100,7 +100,7 @@ public class ECheckController {
         Optional<Envelope> feeLockEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(payerConfirmEnvelope, eCheck.getPayerProcessor())
                 .filter(env -> SignatureReason.FEE_LOCK.equals(env.getContent().getSigReason()));
         if (feeLockEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
 
         return eCheckIssueService.issue(envelope);
@@ -114,7 +114,7 @@ public class ECheckController {
                 .map(r -> (DepositRequest) r);
         if (depositRequestOption.isEmpty()) {
             /* No Deposit Request as part of Envelope */
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Body", 999);
         }
         DepositRequest depositRequest = depositRequestOption.get();
 
@@ -126,7 +126,7 @@ public class ECheckController {
                 .map(eCheck -> (ECheck) eCheck);
         if (eCheckOption.isEmpty()) {
             /* No E-Check details */
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Body", 999);
         }
         ECheck eCheck  = eCheckOption.get();
 
@@ -135,7 +135,7 @@ public class ECheckController {
                 .filter(env -> SignatureReason.IDENTITY.equals(env.getContent().getSigReason()));
 
         if (payeeIdentityEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
 
         /* TODO: DepositRequest signature */

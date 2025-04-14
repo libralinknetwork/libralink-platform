@@ -8,6 +8,8 @@ public class WalletDTO {
     private String userId;
     private Currency currency;
     private String publicKey;
+    private String address;
+    private String algorithm;
 
     public String getId() {
         return id;
@@ -39,5 +41,21 @@ public class WalletDTO {
 
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 }

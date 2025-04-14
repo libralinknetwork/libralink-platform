@@ -32,14 +32,14 @@ public class ProcessorController {
 
         final Optional<String> addressOption = EnvelopeUtils.extractEntityAttribute(envelope, GetProcessorsRequest.class, GetProcessorsRequest::getAddress);
         if (addressOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Body", 999);
         }
 
         /* Verify signature */
         final String pubKey = addressOption.get();
         Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
         if (signedEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
 
         List<Tuple2<String, Boolean>> trustedProcessors = processorService.getTrustedProcessors();

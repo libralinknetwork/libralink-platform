@@ -64,7 +64,8 @@ public class AgentControllerTest {
 
         RegisterKeyRequest request = RegisterKeyRequest.builder()
                 .addAddress(PAYER_CRED.getAddress())
-                .addChallenge("challenge")
+                .addConfirmationId("075e5892-0e32-4a0f-aeb3-e25394a51a7c")
+                .addHash("dhFhkEjUVq4jI0d7BBcDWA==")
                 .build();
 
         Envelope envelope = Envelope.builder()

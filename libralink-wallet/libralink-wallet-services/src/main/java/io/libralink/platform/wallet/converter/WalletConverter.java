@@ -10,9 +10,11 @@ public final class WalletConverter {
     public static WalletDTO toDTO(Wallet wallet) {
         WalletDTO dto = new WalletDTO();
         dto.setId(wallet.getId());
-        dto.setPublicKey(wallet.getPublicKey());
         dto.setUserId(wallet.getUserId());
         dto.setCurrency(wallet.getCurrency());
+        dto.setPublicKey(wallet.getPublicKey());
+        dto.setAddress(wallet.getAddress());
+        dto.setAlgorithm(wallet.getAlgorithm());
 
         return dto;
     }

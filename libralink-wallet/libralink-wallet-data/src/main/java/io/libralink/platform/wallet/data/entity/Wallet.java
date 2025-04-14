@@ -19,6 +19,8 @@ public class Wallet {
 
     @Column(name = "public_key")
     private String publicKey;
+    private String address;
+    private String algorithm;
 
     public String getId() {
         return id;
@@ -50,5 +52,21 @@ public class Wallet {
 
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 }

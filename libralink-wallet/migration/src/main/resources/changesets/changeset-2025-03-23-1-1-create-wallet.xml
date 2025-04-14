@@ -15,8 +15,14 @@
             <column name="currency" type="varchar(20)">
                 <constraints nullable="false"/>
             </column>
-            <column name="public_key" type="varchar(42)">
+            <column name="public_key" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="address" type="text">
                 <constraints nullable="false"/>
+            </column>
+            <column name="algorithm" type="varchar(20)">
+                <constraints nullable="true"/>
             </column>
         </createTable>
     </changeSet>

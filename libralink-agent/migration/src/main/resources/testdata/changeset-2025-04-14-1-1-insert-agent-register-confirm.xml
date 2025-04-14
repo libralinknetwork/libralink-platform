@@ -1,0 +1,15 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="1" author="drkhu">
+        <insert tableName="agent_register_confirm">
+            <column name="confirmation_id" value="075e5892-0e32-4a0f-aeb3-e25394a51a7c" />
+            <column name="updated_at" value="1744662199443" />
+            <column name="expires_at" value="2533597587000" />
+            <column name="status" value="ACTIVE" />
+            <column name="salt" value="671f59f5-1edf-4eca-bbc0-d80ad0e879a2" />
+            <column name="account_id" value="f5ac7d82-5a2e-4f9a-84af-869842fc9f40" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>

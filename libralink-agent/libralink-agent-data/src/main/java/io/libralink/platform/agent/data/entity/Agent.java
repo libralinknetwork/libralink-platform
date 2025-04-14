@@ -13,14 +13,16 @@ public class Agent {
     @Column(name = "account_id")
     private String accountId;
 
-    @Column(name = "public_key")
-    private String publicKey;
-
     @Column(name = "enabled")
     private boolean enabled;
 
     @Column(name = "created_at")
     private Long createdAt;
+
+    @Column(name = "public_key")
+    private String publicKey;
+    private String address;
+    private String algorithm;
 
     public String getId() {
         return id;
@@ -60,5 +62,21 @@ public class Agent {
 
     public void setCreatedAt(Long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 }

@@ -35,21 +35,23 @@ public class AgentController {
     @PostMapping(value = "/protocol/agent/register", produces = "application/json")
     public Envelope register(@RequestBody Envelope envelope) throws Exception {
 
-        final Optional<String> addressOption = EnvelopeUtils.extractEntityAttribute(envelope, RegisterKeyRequest.class, RegisterKeyRequest::getAddress);
-        final Optional<String> challengeOption = EnvelopeUtils.extractEntityAttribute(envelope, RegisterKeyRequest.class, RegisterKeyRequest::getChallenge);
+        Optional<RegisterKeyRequest> requestOptional = EnvelopeUtils.findEntityByType(envelope, RegisterKeyRequest.class)
+                .map(req -> (RegisterKeyRequest) req);
 
-        if (addressOption.isEmpty() || challengeOption.isEmpty()) {
-            throw new AgentProtocolException();
+        if (requestOptional.isEmpty()) {
+            throw new AgentProtocolException("Invalid Body", 999);
         }
+
+        final RegisterKeyRequest request = requestOptional.get();
+        final String address = request.getAddress();
 
         /* Verify signature */
-        final String address = addressOption.get();
         Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, address);
         if (signedEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
 
-        /* TODO: register */
+        agentService.registerAgent(address, request.getPubKey(), request.getAlgorithm(), request.getConfirmationId(), request.getHash());
 
         RegisterKeyResponse response = RegisterKeyResponse.builder()
                 .addAddress(address)
@@ -69,7 +71,7 @@ public class AgentController {
 
         boolean isValid = BaseEntityValidator.findFirstFailedRule(envelope, GetBalanceRequestSignedRule.class).isEmpty();
         if (!isValid) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Request", 999);
         }
 
         final String address = EnvelopeUtils.extractEntityAttribute(envelope, GetBalanceRequest.class, GetBalanceRequest::getAddress).get();
@@ -77,7 +79,7 @@ public class AgentController {
         /* Verify all signatures, aka authentication & authorization */
         Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, address);
         if (signedEnvelopeOption.isEmpty()) {
-            throw new AgentProtocolException();
+            throw new AgentProtocolException("Invalid Signature", 999);
         }
 
         /* Call Service */

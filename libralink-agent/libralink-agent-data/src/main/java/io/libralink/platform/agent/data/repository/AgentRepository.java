@@ -13,6 +13,6 @@ import java.util.Optional;
 @Repository
 public interface AgentRepository extends JpaRepository<Agent, String> {
 
-    @Query("from Agent a WHERE a.publicKey = ?1")
-    Optional<Agent> findByPublicKey(String publicKey);
+    @Query("from Agent a WHERE a.address = ?1")
+    Optional<Agent> findByAddress(String address);
 }
