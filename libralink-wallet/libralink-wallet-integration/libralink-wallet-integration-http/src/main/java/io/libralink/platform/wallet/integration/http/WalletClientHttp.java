@@ -6,6 +6,7 @@ import io.libralink.platform.common.ApplicationException;
 import io.libralink.platform.common.IntegrationException;
 import io.libralink.platform.wallet.integration.api.WalletClient;
 import io.libralink.platform.wallet.integration.dto.BalanceDTO;
+import io.libralink.platform.wallet.integration.dto.CreateUserWalletDTO;
 import io.libralink.platform.wallet.integration.dto.IntegrationDepositApprovalDTO;
 import io.libralink.platform.wallet.integration.dto.IntegrationECheckDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,35 @@ public class WalletClientHttp implements WalletClient {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Override
+    public void createUserWallet(String userId, String address, String publicKey, String algorithm, String systemToken) throws ApplicationException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(systemToken);
+
+        CreateUserWalletDTO requestBody = new CreateUserWalletDTO();
+        requestBody.setAddress(address);
+        requestBody.setUserId(userId);
+        requestBody.setAlgorithm(algorithm);
+        requestBody.setPublicKey(publicKey);
+
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(requestBody);
+        } catch (JsonProcessingException e) {
+            throw new IntegrationException(e.getMessage());
+        }
+
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        ResponseEntity<String> response = restTemplate.exchange(String.format("%s/internal/wallet/create",
+                walletBaseAddress), HttpMethod.POST, request, String.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IntegrationException("E-Check Issue unsuccessful");
+        }
+    }
 
     @Override
     public BalanceDTO getBalance(String pubKey, String systemToken) throws ApplicationException {
@@ -55,7 +85,7 @@ public class WalletClientHttp implements WalletClient {
     }
 
     @Override
-    public IntegrationECheckDTO register(IntegrationECheckDTO dto, String systemToken) throws ApplicationException {
+    public void register(IntegrationECheckDTO dto, String systemToken) throws ApplicationException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -69,14 +99,13 @@ public class WalletClientHttp implements WalletClient {
         }
 
         HttpEntity<String> request = new HttpEntity<>(body, headers);
-        ResponseEntity<IntegrationECheckDTO> response = restTemplate.exchange(String.format("%s/internal/wallet/issue-e-check",
-                walletBaseAddress), HttpMethod.POST, request, IntegrationECheckDTO.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(String.format("%s/internal/wallet/issue-e-check",
+                walletBaseAddress), HttpMethod.POST, request, String.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new IntegrationException("E-Check Issue unsuccessful");
         }
-
-        return response.getBody();
     }
 
     @Override

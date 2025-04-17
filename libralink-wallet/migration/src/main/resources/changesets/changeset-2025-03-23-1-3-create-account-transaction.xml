@@ -13,7 +13,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="tgt_account_id" type="varchar(36)">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
             <column name="created_at" type="bigint">
                 <constraints nullable="false"/>
@@ -36,7 +36,7 @@
             <column name="note" type="text">
                 <constraints nullable="true"/>
             </column>
-            <column name="agent_id" type="varchar(36)">
+            <column name="envelope_id" type="varchar(36)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -50,12 +50,6 @@
         <addForeignKeyConstraint baseColumnNames="src_account_id"
                                  baseTableName="account_transaction"
                                  constraintName="fk_account_transaction_source_account_id"
-                                 referencedColumnNames="account_id"
-                                 referencedTableName="account"/>
-
-        <addForeignKeyConstraint baseColumnNames="tgt_account_id"
-                                 baseTableName="account_transaction"
-                                 constraintName="fk_account_transaction_target_account_id"
                                  referencedColumnNames="account_id"
                                  referencedTableName="account"/>
     </changeSet>

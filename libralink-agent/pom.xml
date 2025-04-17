@@ -18,6 +18,7 @@
         <module>libralink-agent-services</module>
         <module>libralink-agent-integration</module>
         <module>libralink-agent-controllers</module>
+        <module>migration</module>
     </modules>
 
 </project>

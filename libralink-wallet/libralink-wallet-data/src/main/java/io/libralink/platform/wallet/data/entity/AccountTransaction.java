@@ -41,8 +41,8 @@ public class AccountTransaction {
     @JoinColumn(name = "p_tx_id")
     private List<AccountTransaction> children = new ArrayList<>();
 
-    @Column(name = "agent_id")
-    private String agentId;
+    @Column(name = "envelope_id")
+    private String envelopeId;
 
     public String getId() {
         return id;
@@ -124,11 +124,11 @@ public class AccountTransaction {
         this.children = children;
     }
 
-    public String getAgentId() {
-        return agentId;
+    public String getEnvelopeId() {
+        return envelopeId;
     }
 
-    public void setAgentId(String agentId) {
-        this.agentId = agentId;
+    public void setEnvelopeId(String envelopeId) {
+        this.envelopeId = envelopeId;
     }
 }

@@ -30,10 +30,10 @@
     <modules>
         <module>libralink-security-common</module>
         <module>libralink-security-filter</module>
-<!--        <module>libralink-security-data</module>-->
+        <module>libralink-security-data</module>
         <module>libralink-security-services</module>
 <!--        <module>libralink-security-controllers</module>-->
-<!--        <module>migration</module>-->
+        <module>migration</module>
     </modules>
 
 </project>

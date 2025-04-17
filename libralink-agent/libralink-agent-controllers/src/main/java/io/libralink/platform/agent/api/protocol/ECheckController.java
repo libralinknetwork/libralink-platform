@@ -87,7 +87,7 @@ public class ECheckController {
         }
         ECheck eCheck  = eCheckOption.get();
 
-        /* Find Envelope with Payer's CONFIRM sgnature */
+        /* Find Envelope with Payer's CONFIRM signature */
         Optional<Envelope> payerConfirmEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, eCheck.getPayer())
                 .filter(env -> SignatureReason.CONFIRM.equals(env.getContent().getSigReason()));
         if (payerConfirmEnvelopeOption.isEmpty()) {

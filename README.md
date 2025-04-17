@@ -12,6 +12,9 @@ docker-compose -f docker-compose.yml up -d postgres
 
 ## Data Migration
 ```
+cd ./libralink-security/migration
+mvn clean install liquibase:update -N -DabsolutePath=`pwd`/src/main/resources
+
 cd ./libralink-agent/migration
 mvn clean install liquibase:update -N -DabsolutePath=`pwd`/src/main/resources
 

@@ -1,6 +1,7 @@
 package io.libralink.platform.wallet.api;
 
 import io.libralink.platform.wallet.integration.dto.BalanceDTO;
+import io.libralink.platform.wallet.integration.dto.CreateUserWalletDTO;
 import io.libralink.platform.wallet.integration.dto.IntegrationECheckDTO;
 import io.libralink.platform.wallet.services.ECheckService;
 import io.libralink.platform.wallet.services.WalletService;
@@ -24,11 +25,20 @@ public class SystemController {
     private WalletService walletService;
 
     @PreAuthorize("hasAuthority('SYSTEM')")
+    @PostMapping(value = "/internal/wallet/create", produces = "application/json")
+    public String createUserWallet(@RequestBody CreateUserWalletDTO createUserWalletDTO) throws Exception {
+
+        walletService.createUserWallet(createUserWalletDTO);
+        return "Success";
+    }
+
+    @PreAuthorize("hasAuthority('SYSTEM')")
     @PostMapping(value = "/internal/wallet/issue-e-check", produces = "application/json")
-    public IntegrationECheckDTO issueECheck(@RequestBody IntegrationECheckDTO eCheckDTO) throws Exception {
+    public String issueECheck(@RequestBody IntegrationECheckDTO eCheckDTO) throws Exception {
         LOG.info("E-Check Issue request received");
 
-        return eCheckIssueService.issueECheck(eCheckDTO);
+        eCheckIssueService.issueECheck(eCheckDTO);
+        return "Success";
     }
 
     @PreAuthorize("hasAuthority('SYSTEM')")

@@ -15,6 +15,9 @@ import java.util.Optional;
 @Repository
 public interface AccountTransactionRepository extends JpaRepository<AccountTransaction, String> {
 
+    @Query("from AccountTransaction t WHERE t.envelopeId = ?1")
+    Optional<AccountTransaction> findByEnvelope(String envelopeId);
+
     @Query("from AccountTransaction t WHERE t.note = ?1")
     Optional<AccountTransaction> findByNote(String note);
 

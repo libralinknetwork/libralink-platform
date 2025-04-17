@@ -8,11 +8,14 @@ import io.libralink.client.payment.protocol.processing.ProcessingDetails;
 import io.libralink.client.payment.protocol.processing.ProcessingFee;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.EnvelopeUtils;
+import io.libralink.platform.agent.exceptions.AgentProtocolException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 @Service
@@ -36,9 +39,18 @@ public class ProcessorFeeService {
         if (eCheckOption.isEmpty()) {
             return envelope; /* Non-ECheck Envelope */
         }
+        ECheck eCheck = eCheckOption.get();
 
-        /* TODO: Verify processor(s) */
-        /* TODO: verify E-Check details (expiration, etc) */
+        /* Only one Processor supported at the moment */
+        if (!processorCredentials.getAddress().equals(eCheck.getPayerProcessor()) ||
+                !processorCredentials.getAddress().equals(eCheck.getPayeeProcessor())) {
+            throw new AgentProtocolException("Unknown Payer/Payee processor", 999);
+        }
+
+        long now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+        if (eCheck.getExpiresAt() < now) {
+            throw new AgentProtocolException("Expired E-Check", 999);
+        }
 
         ProcessingDetails processingDetails = ProcessingDetails.builder()
                 .addIntermediary(null) /* No network/cluster at this time */

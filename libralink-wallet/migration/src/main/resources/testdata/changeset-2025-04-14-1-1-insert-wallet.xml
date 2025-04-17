@@ -5,7 +5,7 @@
     <changeSet id="1" author="drkhu">
         <insert tableName="wallet">
             <column name="wallet_id" value="0c26608d-8674-42df-ab4b-99f646f0df51" />
-            <column name="user_id" value="d8cf8906-51d8-422a-8e59-d5cfca3ec01d" />
+            <column name="user_id" value="dc3fd123-8113-4958-8beb-c8b665b4268e" />
             <column name="currency" value="USDC" />
             <column name="address" value="0xf39902b133fbdcf926c1f48665c98d1b028d905a" />
         </insert>

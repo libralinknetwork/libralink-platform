@@ -1,0 +1,13 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="1" author="drkhu">
+        <insert tableName="users">
+            <column name="u_id" value="dc3fd123-8113-4958-8beb-c8b665b4268e" />
+            <column name="platform" value="github" />
+            <column name="platform_id" value="703731" />
+            <column name="role" value="USER" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>

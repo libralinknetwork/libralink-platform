@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  io.libralink.platform.security.data.config.SecurityJpaRepositoryConfig

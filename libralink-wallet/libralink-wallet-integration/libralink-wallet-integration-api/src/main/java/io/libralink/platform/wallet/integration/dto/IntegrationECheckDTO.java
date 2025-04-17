@@ -15,6 +15,10 @@ public class IntegrationECheckDTO {
     private Long expiresAt;
     private String note;
     private String envelopeId;
+    private String accountId;
+
+    private BigDecimal feeAmount;
+    private String feeType;
 
     public String getCheckId() {
         return checkId;
@@ -102,5 +106,29 @@ public class IntegrationECheckDTO {
 
     public void setEnvelopeId(String envelopeId) {
         this.envelopeId = envelopeId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public BigDecimal getFeeAmount() {
+        return feeAmount;
+    }
+
+    public void setFeeAmount(BigDecimal feeAmount) {
+        this.feeAmount = feeAmount;
+    }
+
+    public String getFeeType() {
+        return feeType;
+    }
+
+    public void setFeeType(String feeType) {
+        this.feeType = feeType;
     }
 }

@@ -1,6 +1,7 @@
 package io.libralink.platform.suite.config;
 
 import io.libralink.platform.common.ApplicationException;
+import io.libralink.platform.common.Tuple3;
 import io.libralink.platform.security.common.constants.SecurityConstants;
 import io.libralink.platform.security.filter.*;
 import io.libralink.platform.security.filter.service.DefaultAuthorizationFilter;
@@ -9,6 +10,7 @@ import io.libralink.platform.security.service.UserProvisioningService;
 import io.libralink.platform.security.service.dto.UserDTO;
 import io.libralink.platform.suite.oauth2.CustomOAuth2User;
 import io.libralink.platform.suite.oauth2.CustomOAuth2UserService;
+import io.libralink.platform.wallet.integration.api.WalletClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity
@@ -58,6 +62,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private WalletClient walletClient;
+
     @Bean
     public ClientRegistrationRepository clientRegistrationRepository(
         @Value(value = "${oauth2.github.clientId}") String clientId,
@@ -77,14 +84,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/error",
                     "/v2/api-docs", "/v2/api-docs/**",
                     "/swagger-ui/**", "/swagger-ui.html", "/webjars/**", "/swagger-resources/**",
-                    "/api/logout",
-                    "/protocol/**"
+                    "/api/logout", "/protocol/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
+            .csrf().disable()
             .oauth2Login()
                 .userInfoEndpoint().userService(oAuth2UserService)
             .and()
@@ -96,6 +103,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                     try {
                         UserDTO user = userProvisioningService.provisionUser(platform, platformUserId);
+
+                        /* TODO: create Key Pair in Payments */
+                        Tuple3<String, String, String> addrKeyAlg = Tuple3.create(
+                            UUID.randomUUID().toString(), UUID.randomUUID().toString(), "SECP256K1");
+
+                        /* Create Wallet, Create Default Account */
+                        walletClient.createUserWallet(user.getUserId().toString(), addrKeyAlg.getFirst(), addrKeyAlg.getSecond(),
+                                addrKeyAlg.getThird(), tokenService.issueSystemToken());
 
                         String jwt = tokenService.issueToken(user.getUserId(), user.getRole());
                         cookieManagementService.addCookieToResponse(response, SecurityConstants.COOKIE_NAME_TOKEN,

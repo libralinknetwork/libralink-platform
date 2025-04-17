@@ -6,6 +6,8 @@ import io.libralink.platform.wallet.dto.AccountDTO;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class AccountConverter {
 
@@ -23,5 +25,10 @@ public final class AccountConverter {
         dto.setWalletId(account.getWalletId());
 
         return dto;
+    }
+
+    public static List<AccountDTO> toDTOs(List<Account> accounts) {
+        return accounts.stream().map(AccountConverter::toDTO)
+                .collect(Collectors.toList());
     }
 }

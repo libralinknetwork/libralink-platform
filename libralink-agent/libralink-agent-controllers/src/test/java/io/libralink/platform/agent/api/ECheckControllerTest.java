@@ -78,7 +78,7 @@ public class ECheckControllerTest {
             .addCurrency("USDC")
             .addFaceAmount(BigDecimal.valueOf(150))
             .addCreatedAt(now.toEpochSecond(ZoneOffset.UTC))
-            .addExpiresAt(now.plusDays(3).toEpochSecond(ZoneOffset.UTC))
+            .addExpiresAt(now.plusYears(10).toEpochSecond(ZoneOffset.UTC))
             .addNote("")
             .build();
 
@@ -120,11 +120,11 @@ public class ECheckControllerTest {
 
         final String feeLockEnvelopeString = "{\n" +
                 "    \"objectType\": \"Envelope\",\n" +
-                "    \"id\": \"084da740-4ced-487a-9123-6f631203ebc7\",\n" +
+                "    \"id\": \"66d56a6b-a4f0-44c1-80fe-64393f76adb0\",\n" +
                 "    \"content\": {\n" +
                 "        \"entity\": {\n" +
                 "            \"objectType\": \"ProcessingDetails\",\n" +
-                "            \"id\": \"19056b20-d372-4daa-83e3-e03e489a574d\",\n" +
+                "            \"id\": \"de927e67-697b-4514-8264-55d15b749897\",\n" +
                 "            \"fee\": {\n" +
                 "                \"feeType\": \"percent\",\n" +
                 "                \"amount\": 1\n" +
@@ -132,19 +132,19 @@ public class ECheckControllerTest {
                 "            \"intermediary\": null,\n" +
                 "            \"envelope\": {\n" +
                 "                \"objectType\": \"Envelope\",\n" +
-                "                \"id\": \"117b7769-6dab-4f03-8c11-8de6316052b2\",\n" +
+                "                \"id\": \"ebf5a251-f93d-4340-9084-a02b9edfe2ec\",\n" +
                 "                \"content\": {\n" +
                 "                    \"entity\": {\n" +
                 "                        \"objectType\": \"ECheck\",\n" +
-                "                        \"id\": \"cd33fa80-7178-406a-bdd6-4dbbd7d38633\",\n" +
+                "                        \"id\": \"3819fd08-cc61-4da5-b23e-2011ab7563b7\",\n" +
                 "                        \"faceAmount\": 150,\n" +
                 "                        \"currency\": \"USDC\",\n" +
                 "                        \"payer\": \"0xf39902b133fbdcf926c1f48665c98d1b028d905a\",\n" +
                 "                        \"payerProcessor\": \"0x185cd459757a63ed73f2100f70d311983b37bca6\",\n" +
                 "                        \"payee\": \"0x8f33dceeedfcf7185aa480ee16db9b9bb745756e\",\n" +
                 "                        \"payeeProcessor\": \"0x185cd459757a63ed73f2100f70d311983b37bca6\",\n" +
-                "                        \"createdAt\": 1744559637,\n" +
-                "                        \"expiresAt\": 1744818837,\n" +
+                "                        \"createdAt\": 1744830279,\n" +
+                "                        \"expiresAt\": 2060363079,\n" +
                 "                        \"note\": \"\"\n" +
                 "                    },\n" +
                 "                    \"address\": \"0xf39902b133fbdcf926c1f48665c98d1b028d905a\",\n" +
@@ -152,7 +152,7 @@ public class ECheckControllerTest {
                 "                    \"sigReason\": \"IDENTITY\",\n" +
                 "                    \"algorithm\": \"SECP256K1\"\n" +
                 "                },\n" +
-                "                \"sig\": \"0xf22219e35c1a8bc73a32a16f7e1ec7fc7973709446d1964d230a9d02f0e174f7157e9affea2484303c95ae2677c994b6b0a015fad6241102da4f8d227d6f04f91b\"\n" +
+                "                \"sig\": \"0x6068effd7c8444fd5f4d58c5dc7caa51ae6501012497d26e04be057c7a0fad473e9f7f4f6fc5d90afbd24281da942eaa77d5febc08c658953c304126b5568e091c\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"address\": \"0x185cd459757a63ed73f2100f70d311983b37bca6\",\n" +
@@ -160,7 +160,7 @@ public class ECheckControllerTest {
                 "        \"sigReason\": \"FEE_LOCK\",\n" +
                 "        \"algorithm\": \"SECP256K1\"\n" +
                 "    },\n" +
-                "    \"sig\": \"0x86b874bcdd1aeb1667bcae88b85487eb3cec1c6d3de60bd1a8c381f97aa946026ec6f6a0067e488ceafe7f04d84cd2bffb00b3d30bbc3c5a064eccbe9b3324401b\"\n" +
+                "    \"sig\": \"0x8c4296512e06d07e773c5f460cc9b2543c8826fb3ab40d9b59eb81ed0709eec67abd104205deff857e444c0d3878ae67c7f888b4167cbb1ef22aaed0e98c57201b\"\n" +
                 "}";
 
         Envelope feeLockEnvelope = JsonUtils.fromJson(feeLockEnvelopeString, Envelope.class);
