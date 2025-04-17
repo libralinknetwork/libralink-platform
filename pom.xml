@@ -9,11 +9,11 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <modules>
-        <module>libralink-common</module>
         <module>libralink-parent</module>
+        <module>libralink-common</module>
         <module>libralink-security</module>
-        <module>libralink-agent</module>
         <module>libralink-wallet</module>
+        <module>libralink-agent</module>
         <module>libralink-apps</module>
         <module>libralink-tools</module>
     </modules>
