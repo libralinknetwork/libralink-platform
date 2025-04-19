@@ -91,7 +91,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
-            .csrf().disable()
             .oauth2Login()
                 .userInfoEndpoint().userService(oAuth2UserService)
             .and()
