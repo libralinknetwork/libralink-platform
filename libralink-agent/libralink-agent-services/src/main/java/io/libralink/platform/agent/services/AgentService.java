@@ -1,6 +1,5 @@
 package io.libralink.platform.agent.services;
 
-import io.libralink.client.payment.protocol.SignatureAlgorithm;
 import io.libralink.platform.agent.data.entity.Agent;
 import io.libralink.platform.agent.data.entity.AgentRegisterConfirm;
 import io.libralink.platform.agent.data.enums.ChallengeStatus;
@@ -33,7 +32,7 @@ public class AgentService {
     @Autowired
     private AgentRegisterChallengeRepository challengeRepository;
 
-    public void registerAgent(String address, String publicKey, SignatureAlgorithm algorithm, String confirmationId, String hash) throws Exception {
+    public void registerAgent(String address, String publicKey, String algorithm, String confirmationId, String hash) throws Exception {
 
         Optional<Agent> agentOptional = agentRepository.findByAddress(address);
         if (agentOptional.isPresent()) {

@@ -1,11 +1,10 @@
 package io.libralink.platform.agent.services;
 
-import io.libralink.client.payment.protocol.echeck.ECheck;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
-import io.libralink.client.payment.protocol.processing.ProcessingDetails;
-import io.libralink.client.payment.protocol.processing.ProcessingFee;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
+import io.libralink.client.payment.proto.builder.fee.ProcessingFeeBuilder;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.EnvelopeUtils;
 import io.libralink.platform.agent.exceptions.AgentProtocolException;
@@ -17,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProcessorFeeService {
@@ -33,17 +33,17 @@ public class ProcessorFeeService {
         processorCredentials = Credentials.create(processorPrivateKey);
     }
 
-    public Envelope preProcess(Envelope envelope) throws Exception {
+    public Libralink.Envelope preProcess(Libralink.Envelope envelope) throws Exception {
 
-        Optional<ECheck> eCheckOption = EnvelopeUtils.findEntityByType(envelope, ECheck.class).map(eCheck -> (ECheck) eCheck);
+        Optional<Libralink.ECheck> eCheckOption = EnvelopeUtils.findEntityByType(envelope, Libralink.ECheck.class);
         if (eCheckOption.isEmpty()) {
             return envelope; /* Non-ECheck Envelope */
         }
-        ECheck eCheck = eCheckOption.get();
+        Libralink.ECheck eCheck = eCheckOption.get();
 
         /* Only one Processor supported at the moment */
-        if (!processorCredentials.getAddress().equals(eCheck.getPayerProcessor()) ||
-                !processorCredentials.getAddress().equals(eCheck.getPayeeProcessor())) {
+        if (!processorCredentials.getAddress().equals(eCheck.getFromProc()) ||
+                !processorCredentials.getAddress().equals(eCheck.getToProc())) {
             throw new AgentProtocolException("Unknown Payer/Payee processor", 999);
         }
 
@@ -52,22 +52,21 @@ public class ProcessorFeeService {
             throw new AgentProtocolException("Expired E-Check", 999);
         }
 
-        ProcessingDetails processingDetails = ProcessingDetails.builder()
+        Libralink.ProcessingFee processingDetails = ProcessingFeeBuilder.newBuilder()
                 .addIntermediary(null) /* No network/cluster at this time */
                 .addEnvelope(envelope)
-                .addFee(ProcessingFee.builder()
-                    .addFeeType(feeType)
-                    .addAmount(amount)
-                    .build())
+                .addFeeType(feeType)
+                .addAmount(amount)
                 .build();
 
-        EnvelopeContent envelopeContent = EnvelopeContent.builder()
-                .addEntity(processingDetails)
+        Libralink.EnvelopeContent envelopeContent = EnvelopeContentBuilder.newBuilder()
+                .addEntity(Any.pack(processingDetails))
                 .build();
 
-        Envelope responseEnvelope = Envelope.builder()
+        Libralink.Envelope responseEnvelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
                 .addContent(envelopeContent).build();
 
-        return SignatureHelper.sign(responseEnvelope, processorCredentials, SignatureReason.FEE_LOCK);
+        return SignatureHelper.sign(responseEnvelope, processorCredentials, Libralink.SignatureReason.FEE_LOCK);
     }
 }

@@ -1,13 +1,14 @@
 package io.libralink.platform.agent.api;
 
-import io.libralink.client.payment.protocol.api.echeck.DepositRequest;
-import io.libralink.client.payment.protocol.echeck.DepositApproval;
-import io.libralink.client.payment.protocol.echeck.ECheck;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
-import io.libralink.client.payment.protocol.processing.ProcessingDetails;
-import io.libralink.client.payment.protocol.processing.ProcessingFee;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.api.DepositRequestBuilder;
+import io.libralink.client.payment.proto.builder.echeck.ECheckBuilder;
+import io.libralink.client.payment.proto.builder.echeck.PaymentRequestBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
+import io.libralink.client.payment.proto.builder.fee.ProcessingFeeBuilder;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.JsonUtils;
 import io.libralink.platform.agent.api.protocol.ECheckController;
@@ -27,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +54,9 @@ public class ECheckDepositTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private AgentService agentService;
 
@@ -73,11 +78,12 @@ public class ECheckDepositTest {
     LocalDateTime now = LocalDateTime.now();
 
     /* E-Check Definition */
-    private ECheck eCheck = ECheck.builder()
-            .addPayer(PAYER_CRED.getAddress())
-            .addPayerProcessor(PROCESSOR_CRED.getAddress())
-            .addPayee(PAYEE_CRED.getAddress())
-            .addPayeeProcessor(PROCESSOR_CRED.getAddress())
+    private Libralink.ECheck eCheck = ECheckBuilder.newBuilder()
+            .addCorrelationId(UUID.randomUUID())
+            .addFrom(PAYER_CRED.getAddress())
+            .addFromProc(PROCESSOR_CRED.getAddress())
+            .addTo(PAYEE_CRED.getAddress())
+            .addToProc(PROCESSOR_CRED.getAddress())
             .addCurrency("USDC")
             .addFaceAmount(BigDecimal.valueOf(150))
             .addCreatedAt(now.toEpochSecond(ZoneOffset.UTC))
@@ -85,85 +91,93 @@ public class ECheckDepositTest {
             .addNote("")
             .build();
 
-    private Envelope unsignedECheckEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(eCheck)
+    private Libralink.Envelope unsignedECheckEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(eCheck))
                     .build())
             .build();
 
-    private Envelope payerIdentityECheckEnvelope = SignatureHelper.sign(unsignedECheckEnvelope, PAYER_CRED, SignatureReason.IDENTITY);
+    private Libralink.Envelope payerIdentityECheckEnvelope = SignatureHelper.sign(unsignedECheckEnvelope, PAYER_CRED, Libralink.SignatureReason.IDENTITY);
 
-    private ProcessingDetails processingDetails = ProcessingDetails.builder()
+    private Libralink.ProcessingFee processingDetails = ProcessingFeeBuilder.newBuilder()
             .addIntermediary(null)
             .addEnvelope(payerIdentityECheckEnvelope)
-            .addFee(ProcessingFee.builder().addFeeType("percent").addAmount(BigDecimal.ONE).build())
+            .addFeeType("percent")
+            .addAmount(BigDecimal.ONE)
             .build();
 
-    private Envelope unsignedProcessorFeeEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(processingDetails)
+    private Libralink.Envelope unsignedProcessorFeeEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(processingDetails))
                     .build())
             .build();
 
-    private Envelope processorSignedFeeEnvelope = SignatureHelper.sign(unsignedProcessorFeeEnvelope, PROCESSOR_CRED, SignatureReason.FEE_LOCK);
+    private Libralink.Envelope processorSignedFeeEnvelope = SignatureHelper.sign(unsignedProcessorFeeEnvelope, PROCESSOR_CRED, Libralink.SignatureReason.FEE_LOCK);
 
-    private Envelope unsignedPayerConfirmEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(processorSignedFeeEnvelope)
+    private Libralink.Envelope unsignedPayerConfirmEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(processorSignedFeeEnvelope))
                     .build())
             .build();
 
-    private Envelope signedPayerConfirmEnv = SignatureHelper.sign(unsignedPayerConfirmEnvelope, PAYER_CRED, SignatureReason.CONFIRM);
+    private Libralink.Envelope signedPayerConfirmEnv = SignatureHelper.sign(unsignedPayerConfirmEnvelope, PAYER_CRED, Libralink.SignatureReason.CONFIRM);
 
-    private Envelope unsignedProcessorConfirmEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(signedPayerConfirmEnv)
+    private Libralink.Envelope unsignedProcessorConfirmEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(signedPayerConfirmEnv))
                     .build())
             .build();
 
-    private Envelope signedProcessorConfirmEnvelope = SignatureHelper.sign(unsignedProcessorConfirmEnvelope, PROCESSOR_CRED, SignatureReason.CONFIRM);
+    private Libralink.Envelope signedProcessorConfirmEnvelope = SignatureHelper.sign(unsignedProcessorConfirmEnvelope, PROCESSOR_CRED, Libralink.SignatureReason.CONFIRM);
 
     /* Deposit Approval Definition */
-    private DepositApproval depositApproval = DepositApproval.builder()
-            .addPayer(PAYER_CRED.getAddress())
-            .addPayee(PAYEE_CRED.getAddress())
+    private Libralink.PaymentRequest paymentRequest = PaymentRequestBuilder.newBuilder()
+            .addFrom(PAYER_CRED.getAddress())
+            .addTo(PAYEE_CRED.getAddress())
             .addAmount(BigDecimal.valueOf(100))
-            .addCheckId(eCheck.getId())
+            .addCorrelationId(UUID.fromString(eCheck.getCorrelationId()))
             .addCreatedAt(now.toEpochSecond(ZoneOffset.UTC))
             .addNote(null)
             .build();
 
-    private Envelope unsignedPayeeDepositApprovalEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(depositApproval)
+    private Libralink.Envelope unsignedPayeeDepositApprovalEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(paymentRequest))
                     .build())
             .build();
 
-    private Envelope payeeSignedDepositApprovalEnvelope = SignatureHelper.sign(unsignedPayeeDepositApprovalEnvelope, PAYEE_CRED, SignatureReason.CONFIRM);
+    private Libralink.Envelope payeeSignedDepositApprovalEnvelope = SignatureHelper.sign(unsignedPayeeDepositApprovalEnvelope, PAYEE_CRED, Libralink.SignatureReason.CONFIRM);
 
-    private Envelope unsignedPayerDepositApprovalEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(payeeSignedDepositApprovalEnvelope)
+    private Libralink.Envelope unsignedPayerDepositApprovalEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(payeeSignedDepositApprovalEnvelope))
                     .build())
             .build();
 
-    private Envelope payerSignedDepositApprovalEnvelope = SignatureHelper.sign(unsignedPayerDepositApprovalEnvelope, PAYER_CRED, SignatureReason.CONFIRM);
+    private Libralink.Envelope payerSignedDepositApprovalEnvelope = SignatureHelper.sign(unsignedPayerDepositApprovalEnvelope, PAYER_CRED, Libralink.SignatureReason.CONFIRM);
 
     @Test
     public void test_deposit_request() throws Exception {
 
-        DepositRequest depositRequest = DepositRequest.builder()
-                .addCheck(signedProcessorConfirmEnvelope)
-                .addDepositApprovals(List.of(payerSignedDepositApprovalEnvelope))
+        Libralink.DepositRequest depositRequest = DepositRequestBuilder.newBuilder()
+                .addCheckEnvelope(signedProcessorConfirmEnvelope)
+                .addRequestEnvelopes(List.of(payerSignedDepositApprovalEnvelope))
                 .build();
 
-        Envelope unsignedEnvelope = Envelope.builder()
-                .addContent(EnvelopeContent.builder()
-                        .addEntity(depositRequest)
+        Libralink.Envelope unsignedEnvelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
+                .addContent(EnvelopeContentBuilder.newBuilder()
+                        .addEntity(Any.pack(depositRequest))
                         .build())
                 .build();
 
-        Envelope signedEnvelope = SignatureHelper.sign(unsignedEnvelope, PAYEE_CRED, SignatureReason.IDENTITY);
+        Libralink.Envelope signedEnvelope = SignatureHelper.sign(unsignedEnvelope, PAYEE_CRED, Libralink.SignatureReason.IDENTITY);
         String body = JsonUtils.toJson(signedEnvelope);
         LOG.info(body);
 

@@ -31,17 +31,16 @@ public final class ECheckConverter {
 
     public static ECheck toEntity(IntegrationECheckDTO eCheck) {
         ECheck entity = new ECheck();
-        entity.setId(eCheck.getCheckId());
         entity.setEnvelopeId(eCheck.getEnvelopeId());
         entity.setCreatedAt(eCheck.getCreatedAt());
         entity.setExpiresAt(eCheck.getExpiresAt());
         entity.setFaceAmount(eCheck.getFaceAmount());
         entity.setCurrency(Currency.valueOf(eCheck.getCurrency()));
         entity.setNote(eCheck.getNote());
-        entity.setPayee(eCheck.getPayee());
-        entity.setPayeeProcessor(eCheck.getPayeeProcessor());
-        entity.setPayer(eCheck.getPayer());
-        entity.setPayerProcessor(eCheck.getPayerProcessor());
+        entity.setPayee(eCheck.getTo());
+        entity.setPayeeProcessor(eCheck.getToProc());
+        entity.setPayer(eCheck.getFrom());
+        entity.setPayerProcessor(eCheck.getFromProc());
         entity.setAccountId(eCheck.getAccountId());
         return entity;
     }

@@ -1,24 +1,23 @@
 package io.libralink.platform.agent.api.protocol;
 
-import io.libralink.client.payment.protocol.api.processor.GetProcessorsRequest;
-import io.libralink.client.payment.protocol.api.processor.GetProcessorsResponse;
-import io.libralink.client.payment.protocol.api.processor.ProcessorDetails;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.api.GetProcessorResponseBuilder;
+import io.libralink.client.payment.proto.builder.api.ProcessorDetailsBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
 import io.libralink.client.payment.util.EnvelopeUtils;
 import io.libralink.platform.agent.exceptions.AgentProtocolException;
 import io.libralink.platform.agent.services.ProcessorService;
 import io.libralink.platform.common.Tuple2;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Api(tags = "Processors")
 @RestController
@@ -27,39 +26,40 @@ public class ProcessorController {
     @Autowired
     private ProcessorService processorService;
 
-    @PostMapping(value = "/protocol/processor/trusted", produces = "application/json")
-    public Envelope getTrustedProcessors(@RequestBody Envelope envelope) throws Exception {
+    @PostMapping(value = "/protocol/processor/trusted", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_PLAIN_VALUE })
+    public Libralink.Envelope getTrustedProcessors(@RequestBody String body) throws Exception {
 
-        final Optional<String> addressOption = EnvelopeUtils.extractEntityAttribute(envelope, GetProcessorsRequest.class, GetProcessorsRequest::getAddress);
+        Libralink.Envelope envelope = Libralink.Envelope.parseFrom(Base64.getDecoder().decode(body.getBytes()));
+        final Optional<String> addressOption = EnvelopeUtils.extractEntityAttribute(envelope, Libralink.GetProcessorsRequest.class, Libralink.GetProcessorsRequest::getAddress);
         if (addressOption.isEmpty()) {
             throw new AgentProtocolException("Invalid Body", 999);
         }
 
         /* Verify signature */
         final String pubKey = addressOption.get();
-        Optional<Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
+        Optional<Libralink.Envelope> signedEnvelopeOption = EnvelopeUtils.findSignedEnvelopeByPub(envelope, pubKey);
         if (signedEnvelopeOption.isEmpty()) {
             throw new AgentProtocolException("Invalid Signature", 999);
         }
 
         List<Tuple2<String, Boolean>> trustedProcessors = processorService.getTrustedProcessors();
-        List<ProcessorDetails> processorDetails = new ArrayList<>();
+        List<Libralink.ProcessorDetails> processorDetails = new ArrayList<>();
         for (Tuple2<String, Boolean> detail: trustedProcessors) {
-            processorDetails.add(ProcessorDetails.builder()
+            processorDetails.add(ProcessorDetailsBuilder.newBuilder()
                         .addAddress(detail.getFirst())
-                        .addDefault(detail.getSecond())
                     .build());
         }
 
-        GetProcessorsResponse response = GetProcessorsResponse.builder()
+        Libralink.GetProcessorsResponse response = GetProcessorResponseBuilder.newBuilder()
                 .addProcessors(processorDetails)
                 .build();
 
-        return Envelope.builder()
+        return EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
                 .addContent(
-                        EnvelopeContent.builder()
-                                .addEntity(response)
-                                .addSigReason(SignatureReason.NONE)
+                        EnvelopeContentBuilder.newBuilder()
+                                .addEntity(Any.pack(response))
+                                .addSigReason(Libralink.SignatureReason.NONE)
                                 .build()
                 ).build();
     }

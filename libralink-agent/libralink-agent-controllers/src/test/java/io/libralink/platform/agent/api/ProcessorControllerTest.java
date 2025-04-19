@@ -1,9 +1,10 @@
 package io.libralink.platform.agent.api;
 
-import io.libralink.client.payment.protocol.api.processor.GetProcessorsRequest;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.api.GetProcessorRequestBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.JsonUtils;
 import io.libralink.platform.agent.api.protocol.ProcessorController;
@@ -20,6 +21,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.web3j.crypto.Credentials;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,24 +64,26 @@ public class ProcessorControllerTest {
 
         when(processorService.getTrustedProcessors()).thenReturn(List.of(Tuple2.create("trusted_proc_key", true)));
 
-        GetProcessorsRequest request = GetProcessorsRequest.builder()
+        Libralink.GetProcessorsRequest request = GetProcessorRequestBuilder.newBuilder()
                 .addAddress(PAYER_CRED.getAddress())
                 .build();
 
-        Envelope envelope = Envelope.builder()
-                .addContent(EnvelopeContent.builder()
-                        .addSigReason(SignatureReason.NONE)
-                        .addEntity(request)
+        Libralink.Envelope envelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
+                .addContent(EnvelopeContentBuilder.newBuilder()
+                        .addSigReason(Libralink.SignatureReason.NONE)
+                        .addEntity(Any.pack(request))
                         .build())
                 .addId(UUID.randomUUID())
                 .build();
-        Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, SignatureReason.IDENTITY);
-        String body = JsonUtils.toJson(signedEnvelope);
-        LOG.info(body);
+        Libralink.Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, Libralink.SignatureReason.IDENTITY);
+        String base64Body = Base64.getEncoder().encodeToString(signedEnvelope.toByteArray());
+        LOG.info("Base64 - " + base64Body);
+        LOG.info("Json - " + JsonUtils.toJson(signedEnvelope));
 
         mockMvc.perform(post("/protocol/processor/trusted")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(base64Body))
                 .andExpect(status().isOk());
     }
 }

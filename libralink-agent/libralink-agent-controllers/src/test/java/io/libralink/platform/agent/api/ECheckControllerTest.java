@@ -1,10 +1,13 @@
 package io.libralink.platform.agent.api;
 
-import io.libralink.client.payment.protocol.echeck.ECheck;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
-import io.libralink.client.payment.protocol.exception.BuilderException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.echeck.ECheckBuilder;
+import io.libralink.client.payment.proto.builder.echeck.ECheckSplitBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
+import io.libralink.client.payment.proto.builder.exception.BuilderException;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.JsonUtils;
 import io.libralink.platform.agent.api.protocol.ECheckController;
@@ -23,6 +26,9 @@ import org.web3j.crypto.Credentials;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -50,6 +56,9 @@ public class ECheckControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private AgentService agentService;
 
@@ -70,21 +79,28 @@ public class ECheckControllerTest {
 
     LocalDateTime now = LocalDateTime.now();
 
-    private ECheck eCheck = ECheck.builder()
-            .addPayer(PAYER_CRED.getAddress())
-            .addPayerProcessor(PROCESSOR_CRED.getAddress())
-            .addPayee(PAYEE_CRED.getAddress())
-            .addPayeeProcessor(PROCESSOR_CRED.getAddress())
+    private Libralink.ECheck eCheck = ECheckBuilder.newBuilder()
+            .addFrom(PAYER_CRED.getAddress())
+            .addFromProc(PROCESSOR_CRED.getAddress())
+            .addTo(PAYEE_CRED.getAddress())
+            .addToProc(PROCESSOR_CRED.getAddress())
             .addCurrency("USDC")
             .addFaceAmount(BigDecimal.valueOf(150))
             .addCreatedAt(now.toEpochSecond(ZoneOffset.UTC))
             .addExpiresAt(now.plusYears(10).toEpochSecond(ZoneOffset.UTC))
             .addNote("")
-            .build();
+            .addCorrelationId(UUID.randomUUID())
+            .addSplits(List.of(ECheckSplitBuilder.newBuilder()
+                    .addTo(PAYEE_CRED.getAddress())
+                    .addToProc(PROCESSOR_CRED.getAddress())
+                    .addAmount(BigDecimal.valueOf(150))
+                .build()
+            )).build();
 
-    private Envelope unsignedEnvelope = Envelope.builder()
-            .addContent(EnvelopeContent.builder()
-                    .addEntity(eCheck)
+    private Libralink.Envelope unsignedEnvelope = EnvelopeBuilder.newBuilder()
+            .addId(UUID.randomUUID())
+            .addContent(EnvelopeContentBuilder.newBuilder()
+                    .addEntity(Any.pack(eCheck))
                     .build())
             .build();
 
@@ -92,13 +108,14 @@ public class ECheckControllerTest {
     public void test_pre_process_echeck_signed_by_payer() throws Exception {
 
         when(processorFeeService.preProcess(any())).thenReturn(unsignedEnvelope);
-        Envelope signedEnvelope = SignatureHelper.sign(unsignedEnvelope, PAYER_CRED, SignatureReason.IDENTITY);
-        String body = JsonUtils.toJson(signedEnvelope);
-        LOG.info(body);
+        Libralink.Envelope signedEnvelope = SignatureHelper.sign(unsignedEnvelope, PAYER_CRED, Libralink.SignatureReason.IDENTITY);
+        String base64Body = Base64.getEncoder().encodeToString(signedEnvelope.toByteArray());
+        LOG.info("Base64 - " + base64Body);
+        LOG.info("Json - " + JsonUtils.toJson(signedEnvelope));
 
         mockMvc.perform(post("/protocol/echeck/pre-issue")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(base64Body))
                 .andExpect(status().isOk());
     }
 
@@ -106,7 +123,7 @@ public class ECheckControllerTest {
     public void test_pre_process_echeck_signed_by_payee() throws Exception {
 
         when(processorFeeService.preProcess(any())).thenReturn(unsignedEnvelope);
-        Envelope signedEnvelope = SignatureHelper.sign(unsignedEnvelope, PAYEE_CRED, SignatureReason.IDENTITY);
+        Libralink.Envelope signedEnvelope = SignatureHelper.sign(unsignedEnvelope, PAYEE_CRED, Libralink.SignatureReason.IDENTITY);
         String body = JsonUtils.toJson(signedEnvelope);
 
         mockMvc.perform(post("/protocol/echeck/pre-issue")
@@ -118,70 +135,30 @@ public class ECheckControllerTest {
     @Test
     public void test_issue_echeck_signed_by_payer() throws Exception {
 
-        final String feeLockEnvelopeString = "{\n" +
-                "    \"objectType\": \"Envelope\",\n" +
-                "    \"id\": \"66d56a6b-a4f0-44c1-80fe-64393f76adb0\",\n" +
-                "    \"content\": {\n" +
-                "        \"entity\": {\n" +
-                "            \"objectType\": \"ProcessingDetails\",\n" +
-                "            \"id\": \"de927e67-697b-4514-8264-55d15b749897\",\n" +
-                "            \"fee\": {\n" +
-                "                \"feeType\": \"percent\",\n" +
-                "                \"amount\": 1\n" +
-                "            },\n" +
-                "            \"intermediary\": null,\n" +
-                "            \"envelope\": {\n" +
-                "                \"objectType\": \"Envelope\",\n" +
-                "                \"id\": \"ebf5a251-f93d-4340-9084-a02b9edfe2ec\",\n" +
-                "                \"content\": {\n" +
-                "                    \"entity\": {\n" +
-                "                        \"objectType\": \"ECheck\",\n" +
-                "                        \"id\": \"3819fd08-cc61-4da5-b23e-2011ab7563b7\",\n" +
-                "                        \"faceAmount\": 150,\n" +
-                "                        \"currency\": \"USDC\",\n" +
-                "                        \"payer\": \"0xf39902b133fbdcf926c1f48665c98d1b028d905a\",\n" +
-                "                        \"payerProcessor\": \"0x185cd459757a63ed73f2100f70d311983b37bca6\",\n" +
-                "                        \"payee\": \"0x8f33dceeedfcf7185aa480ee16db9b9bb745756e\",\n" +
-                "                        \"payeeProcessor\": \"0x185cd459757a63ed73f2100f70d311983b37bca6\",\n" +
-                "                        \"createdAt\": 1744830279,\n" +
-                "                        \"expiresAt\": 2060363079,\n" +
-                "                        \"note\": \"\"\n" +
-                "                    },\n" +
-                "                    \"address\": \"0xf39902b133fbdcf926c1f48665c98d1b028d905a\",\n" +
-                "                    \"pubKey\": null,\n" +
-                "                    \"sigReason\": \"IDENTITY\",\n" +
-                "                    \"algorithm\": \"SECP256K1\"\n" +
-                "                },\n" +
-                "                \"sig\": \"0x6068effd7c8444fd5f4d58c5dc7caa51ae6501012497d26e04be057c7a0fad473e9f7f4f6fc5d90afbd24281da942eaa77d5febc08c658953c304126b5568e091c\"\n" +
-                "            }\n" +
-                "        },\n" +
-                "        \"address\": \"0x185cd459757a63ed73f2100f70d311983b37bca6\",\n" +
-                "        \"pubKey\": null,\n" +
-                "        \"sigReason\": \"FEE_LOCK\",\n" +
-                "        \"algorithm\": \"SECP256K1\"\n" +
-                "    },\n" +
-                "    \"sig\": \"0x8c4296512e06d07e773c5f460cc9b2543c8826fb3ab40d9b59eb81ed0709eec67abd104205deff857e444c0d3878ae67c7f888b4167cbb1ef22aaed0e98c57201b\"\n" +
-                "}";
+        final String feeLockEnvelopeString = "CiQ2N2JjNGRmOS03YWFiLTQ4MTAtOTU5Yy0wZDZkYTcyYTY4MTcSjAYK0AUKQ3R5cGUuZ29vZ2xlYXBpcy5jb20vaW8ubGlicmFsaW5rLmNsaWVudC5wYXltZW50LnByb3RvLlByb2Nlc3NpbmdGZWUSiAUKB3BlcmNlbnQSATEi+QQKJDA5ZDUxMWY1LTk2NzYtNGQ0MC04NzA5LTgwNTNhYmY1NzQzMBLJAwqNAwo8dHlwZS5nb29nbGVhcGlzLmNvbS9pby5saWJyYWxpbmsuY2xpZW50LnBheW1lbnQucHJvdG8uRUNoZWNrEswCCgMxNTASBFVTREMaKjB4ZjM5OTAyYjEzM2ZiZGNmOTI2YzFmNDg2NjVjOThkMWIwMjhkOTA1YSIqMHgxODVjZDQ1OTc1N2E2M2VkNzNmMjEwMGY3MGQzMTE5ODNiMzdiY2E2KioweDhmMzNkY2VlZWRmY2Y3MTg1YWE0ODBlZTE2ZGI5YjliYjc0NTc1NmUyKjB4MTg1Y2Q0NTk3NTdhNjNlZDczZjIxMDBmNzBkMzExOTgzYjM3YmNhNjpdCgMxNTASKjB4OGYzM2RjZWVlZGZjZjcxODVhYTQ4MGVlMTZkYjliOWJiNzQ1NzU2ZRoqMHgxODVjZDQ1OTc1N2E2M2VkNzNmMjEwMGY3MGQzMTE5ODNiMzdiY2E2QK+0i8AGSK+AxtYHWiQ4OGE3MDMwMC04YzU0LTQzODctYTRkMC02Mzk3NGFiMTRlYjkSKjB4ZjM5OTAyYjEzM2ZiZGNmOTI2YzFmNDg2NjVjOThkMWIwMjhkOTA1YSIJU0VDUDI1NksxKAEahAEweDgwMGFhZjM5OWExYjA4YWJjMTM0YWY5MTFjNjIwMDhkOWMwNDIyYjcxZjQ4MjNhOTcxYTZiYTMyOTgxYWQ4ZTU2MzdhZWU0OTkxYjM3ZTYzNWRmODRkNzVmM2M1ODg3OWZiNGQ1NDdhMjNkNjAxOGE3OTM4NDA5NTUwMDgzOTBjMWMSKjB4MTg1Y2Q0NTk3NTdhNjNlZDczZjIxMDBmNzBkMzExOTgzYjM3YmNhNiIJU0VDUDI1NksxKAIahAEweDI4MDJiNDc1YTJkYzllMmEzNjRhNTMxMzFhOWY2Y2QxMDcxYmYxYjIzNmE5OWUwYWVlNzRkMzNkODFhODI1NDc2NDRmYTU3NTY4YzhiMzA0Yjc4NTA3ZmUyODAyMjIzMzNmNTBhMjRjZjQ0MDY0MmZiY2U4MjU1ZGIyNzhhMWEwMWM=";
+        byte[] decodedBytes = Base64.getDecoder().decode(feeLockEnvelopeString);
+        Libralink.Envelope feeLockEnvelope = Libralink.Envelope.parseFrom(decodedBytes);
 
-        Envelope feeLockEnvelope = JsonUtils.fromJson(feeLockEnvelopeString, Envelope.class);
-
-        Envelope unsignedPayerEnvelope = Envelope.builder()
-                .addContent(EnvelopeContent.builder()
-                        .addEntity(feeLockEnvelope)
+        Libralink.Envelope unsignedPayerEnvelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
+                .addContent(EnvelopeContentBuilder.newBuilder()
+                        .addEntity(Any.pack(feeLockEnvelope))
                         .build())
                 .build();
 
-        Envelope signedByPayerEnvelope = SignatureHelper.sign(unsignedPayerEnvelope, PAYER_CRED, SignatureReason.CONFIRM);
-        String body = JsonUtils.toJson(signedByPayerEnvelope);
-        LOG.info(body);
+        Libralink.Envelope signedByPayerEnvelope = SignatureHelper.sign(unsignedPayerEnvelope, PAYER_CRED, Libralink.SignatureReason.CONFIRM);
+        String base64Body = Base64.getEncoder().encodeToString(signedByPayerEnvelope.toByteArray());
+        LOG.info("Base64 - " + base64Body);
+        LOG.info("Json - " + JsonUtils.toJson(signedByPayerEnvelope));
 
         when(eCheckIssueService.issue(any())).thenReturn(signedByPayerEnvelope);
         mockMvc.perform(post("/protocol/echeck/issue")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .accept(MediaType.TEXT_PLAIN)
+                        .content(base64Body))
                 .andExpect(status().isOk());
     }
 
-    public ECheckControllerTest() throws BuilderException {
+    public ECheckControllerTest() throws BuilderException, BuilderException {
     }
 }

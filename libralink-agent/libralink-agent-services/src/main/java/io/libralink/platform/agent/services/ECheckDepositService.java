@@ -1,12 +1,15 @@
 package io.libralink.platform.agent.services;
 
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
 import io.libralink.client.payment.signature.SignatureHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
+
+import java.util.UUID;
 
 @Service
 public class ECheckDepositService {
@@ -17,17 +20,18 @@ public class ECheckDepositService {
         processorCredentials = Credentials.create(processorPrivateKey);
     }
 
-    public Envelope deposit(Envelope envelope) throws Exception {
+    public Libralink.Envelope deposit(Libralink.Envelope envelope) throws Exception {
 
         /* TODO: heavy logic here */
 
-        EnvelopeContent responseEnvelopeContent = EnvelopeContent.builder()
-                .addEntity(envelope)
+        Libralink.EnvelopeContent responseEnvelopeContent = EnvelopeContentBuilder.newBuilder()
+                .addEntity(Any.pack(envelope))
                 .build();
 
-        Envelope responseEnvelope = Envelope.builder()
+        Libralink.Envelope responseEnvelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
                 .addContent(responseEnvelopeContent).build();
 
-        return SignatureHelper.sign(responseEnvelope, processorCredentials, SignatureReason.CONFIRM);
+        return SignatureHelper.sign(responseEnvelope, processorCredentials, Libralink.SignatureReason.CONFIRM);
     }
 }

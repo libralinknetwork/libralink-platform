@@ -1,10 +1,9 @@
 package io.libralink.platform.agent.services;
 
-import io.libralink.client.payment.protocol.echeck.ECheck;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
-import io.libralink.client.payment.protocol.processing.ProcessingDetails;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.EnvelopeUtils;
 import io.libralink.platform.agent.converters.ECheckConverter;
@@ -22,6 +21,7 @@ import org.web3j.crypto.Credentials;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ECheckIssueService {
@@ -41,27 +41,25 @@ public class ECheckIssueService {
         processorCredentials = Credentials.create(processorPrivateKey);
     }
 
-    public Envelope issue(Envelope envelope) throws Exception {
+    public Libralink.Envelope issue(Libralink.Envelope envelope) throws Exception {
 
         /* Get E-Check details */
-        Optional<ECheck> eCheckOption = EnvelopeUtils.findEntityByType(envelope, ECheck.class)
-                .map(eCheck -> (ECheck) eCheck);
+        Optional<Libralink.ECheck> eCheckOption = EnvelopeUtils.findEntityByType(envelope, Libralink.ECheck.class);
         if (eCheckOption.isEmpty()) {
             /* No E-Check details */
             throw new AgentProtocolException("Invalid Body", 999);
         }
-        ECheck eCheck  = eCheckOption.get();
+        Libralink.ECheck eCheck  = eCheckOption.get();
 
-        Optional<ProcessingDetails> processingOption = EnvelopeUtils.findEntityByType(envelope, ProcessingDetails.class)
-                .map(processing -> (ProcessingDetails) processing);
+        Optional<Libralink.ProcessingFee> processingOption = EnvelopeUtils.findEntityByType(envelope, Libralink.ProcessingFee.class);
         if (processingOption.isEmpty()) {
             throw new AgentProtocolException("Invalid Body", 999);
         }
-        ProcessingDetails processingDetails = processingOption.get();
+        Libralink.ProcessingFee processingDetails = processingOption.get();
 
         /* Only one Processor supported at the moment */
-        if (!processorCredentials.getAddress().equals(eCheck.getPayerProcessor()) ||
-                !processorCredentials.getAddress().equals(eCheck.getPayeeProcessor())) {
+        if (!processorCredentials.getAddress().equals(eCheck.getFromProc()) ||
+                !processorCredentials.getAddress().equals(eCheck.getToProc())) {
             throw new AgentProtocolException("Unknown Payer/Payee processor", 999);
         }
 
@@ -70,14 +68,14 @@ public class ECheckIssueService {
             throw new AgentProtocolException("Expired E-Check", 999);
         }
 
-        Optional<Agent> payerAgentOptional = agentRepository.findByAddress(eCheck.getPayer());
+        Optional<Agent> payerAgentOptional = agentRepository.findByAddress(eCheck.getFrom());
         if (payerAgentOptional.isEmpty()) {
             throw new AgentProtocolException("Unknown Payer", 999);
         }
         Agent payerAgent = payerAgentOptional.get();
 
         IntegrationECheckDTO eCheckDTO = ECheckConverter.toDTO(eCheck, payerAgent.getAccountId(), envelope.getId(),
-                processingDetails.getFee().getAmount(), processingDetails.getFee().getFeeType());
+                processingDetails.getAmount(), processingDetails.getFeeType());
 
         /* Registering E-Check and blocking Payer funds */
         try {
@@ -86,13 +84,14 @@ public class ECheckIssueService {
             throw new AgentProtocolException("E-Check Issue Error", 999);
         }
 
-        EnvelopeContent responseEnvelopeContent = EnvelopeContent.builder()
-                .addEntity(envelope)
+        Libralink.EnvelopeContent responseEnvelopeContent = EnvelopeContentBuilder.newBuilder()
+                .addEntity(Any.pack(envelope))
                 .build();
 
-        Envelope responseEnvelope = Envelope.builder()
+        Libralink.Envelope responseEnvelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
                 .addContent(responseEnvelopeContent).build();
 
-        return SignatureHelper.sign(responseEnvelope, processorCredentials, SignatureReason.CONFIRM);
+        return SignatureHelper.sign(responseEnvelope, processorCredentials, Libralink.SignatureReason.CONFIRM);
     }
 }

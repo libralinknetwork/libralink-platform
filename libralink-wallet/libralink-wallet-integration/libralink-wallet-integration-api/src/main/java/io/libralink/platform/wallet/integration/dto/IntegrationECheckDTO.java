@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 
 public class IntegrationECheckDTO {
 
-    private String checkId;
+    private String correlationId;
     private BigDecimal faceAmount;
     private String currency;
-    private String payer;
-    private String payerProcessor;
-    private String payee;
-    private String payeeProcessor;
+    private String from;
+    private String fromProc;
+    private String to;
+    private String toProc;
     private Long createdAt;
     private Long expiresAt;
     private String note;
@@ -20,12 +20,12 @@ public class IntegrationECheckDTO {
     private BigDecimal feeAmount;
     private String feeType;
 
-    public String getCheckId() {
-        return checkId;
+    public String getCorrelationId() {
+        return correlationId;
     }
 
-    public void setCheckId(String checkId) {
-        this.checkId = checkId;
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 
     public BigDecimal getFaceAmount() {
@@ -44,36 +44,36 @@ public class IntegrationECheckDTO {
         this.currency = currency;
     }
 
-    public String getPayer() {
-        return payer;
+    public String getFrom() {
+        return from;
     }
 
-    public void setPayer(String payer) {
-        this.payer = payer;
+    public void setFrom(String from) {
+        this.from = from;
     }
 
-    public String getPayerProcessor() {
-        return payerProcessor;
+    public String getFromProc() {
+        return fromProc;
     }
 
-    public void setPayerProcessor(String payerProcessor) {
-        this.payerProcessor = payerProcessor;
+    public void setFromProc(String fromProc) {
+        this.fromProc = fromProc;
     }
 
-    public String getPayee() {
-        return payee;
+    public String getTo() {
+        return to;
     }
 
-    public void setPayee(String payee) {
-        this.payee = payee;
+    public void setTo(String to) {
+        this.to = to;
     }
 
-    public String getPayeeProcessor() {
-        return payeeProcessor;
+    public String getToProc() {
+        return toProc;
     }
 
-    public void setPayeeProcessor(String payeeProcessor) {
-        this.payeeProcessor = payeeProcessor;
+    public void setToProc(String toProc) {
+        this.toProc = toProc;
     }
 
     public Long getCreatedAt() {

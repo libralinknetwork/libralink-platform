@@ -1,6 +1,6 @@
 package io.libralink.platform.wallet.api;
 
-import io.libralink.client.payment.util.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.libralink.platform.wallet.integration.dto.IntegrationECheckDTO;
 import io.libralink.platform.wallet.services.AccountService;
 import io.libralink.platform.wallet.services.ECheckService;
@@ -39,6 +39,9 @@ public class SystemControllerTest {
     final private Credentials PROCESSOR_CRED = Credentials.create(PROCESSOR_PK);
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private MockMvc mockMvc;
 
     @MockBean
@@ -57,12 +60,12 @@ public class SystemControllerTest {
         dto.setFaceAmount(BigDecimal.valueOf(50));
         dto.setCurrency("USDC");
         dto.setNote("note");
-        dto.setPayee(PAYEE_CRED.getAddress());
-        dto.setPayeeProcessor(PROCESSOR_CRED.getAddress());
-        dto.setPayer(PAYER_CRED.getAddress());
-        dto.setPayerProcessor(PROCESSOR_CRED.getAddress());
+        dto.setTo(PAYEE_CRED.getAddress());
+        dto.setToProc(PROCESSOR_CRED.getAddress());
+        dto.setFrom(PAYER_CRED.getAddress());
+        dto.setFromProc(PROCESSOR_CRED.getAddress());
 
-        String body = JsonUtils.toJson(dto);
+        String body = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(post("/internal/wallet/issue-e-check")
                         .contentType(MediaType.APPLICATION_JSON)

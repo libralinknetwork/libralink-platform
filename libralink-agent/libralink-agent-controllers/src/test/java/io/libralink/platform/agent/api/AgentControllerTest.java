@@ -1,10 +1,11 @@
 package io.libralink.platform.agent.api;
 
-import io.libralink.client.payment.protocol.api.account.RegisterKeyRequest;
-import io.libralink.client.payment.protocol.api.balance.GetBalanceRequest;
-import io.libralink.client.payment.protocol.envelope.Envelope;
-import io.libralink.client.payment.protocol.envelope.EnvelopeContent;
-import io.libralink.client.payment.protocol.envelope.SignatureReason;
+import com.google.protobuf.Any;
+import io.libralink.client.payment.proto.Libralink;
+import io.libralink.client.payment.proto.builder.api.GetBalanceRequestBuilder;
+import io.libralink.client.payment.proto.builder.api.RegisterKeyRequestBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeBuilder;
+import io.libralink.client.payment.proto.builder.envelope.EnvelopeContentBuilder;
 import io.libralink.client.payment.signature.SignatureHelper;
 import io.libralink.client.payment.util.JsonUtils;
 import io.libralink.platform.agent.api.protocol.AgentController;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.web3j.crypto.Credentials;
 
 import java.math.BigDecimal;
+import java.util.Base64;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -62,26 +64,29 @@ public class AgentControllerTest {
     @Test
     public void test_register_endpoint() throws Exception {
 
-        RegisterKeyRequest request = RegisterKeyRequest.builder()
+        Libralink.RegisterKeyRequest request = RegisterKeyRequestBuilder.newBuilder()
                 .addAddress(PAYER_CRED.getAddress())
+                .addAlgorithm("secp256k1")
                 .addConfirmationId("075e5892-0e32-4a0f-aeb3-e25394a51a7c")
                 .addHash("dhFhkEjUVq4jI0d7BBcDWA==")
                 .build();
 
-        Envelope envelope = Envelope.builder()
-                .addContent(EnvelopeContent.builder()
-                        .addSigReason(SignatureReason.NONE)
-                        .addEntity(request)
+        Libralink.Envelope envelope = EnvelopeBuilder.newBuilder()
+                .addId(UUID.randomUUID())
+                .addContent(EnvelopeContentBuilder.newBuilder()
+                        .addSigReason(Libralink.SignatureReason.NONE)
+                        .addEntity(Any.pack(request))
                         .build())
                 .addId(UUID.randomUUID())
                 .build();
-        Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, SignatureReason.IDENTITY);
-        String body = JsonUtils.toJson(signedEnvelope);
-        LOG.info(body);
+        Libralink.Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, Libralink.SignatureReason.IDENTITY);
+        String base64Body = Base64.getEncoder().encodeToString(signedEnvelope.toByteArray());
+        LOG.info("Base64 - " + base64Body);
+        LOG.info("Json - " + JsonUtils.toJson(signedEnvelope));
 
         mockMvc.perform(post("/protocol/agent/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(base64Body))
                 .andExpect(status().isOk());
     }
 
@@ -96,26 +101,27 @@ public class AgentControllerTest {
 
         when(agentService.getBalance(anyString())).thenReturn(getBalanceResponse);
 
-        GetBalanceRequest request = GetBalanceRequest.builder()
+        Libralink.GetBalanceRequest request = GetBalanceRequestBuilder.newBuilder()
             .addAddress(PAYER_CRED.getAddress())
                 .build();
 
-        EnvelopeContent envelopeContent = EnvelopeContent.builder()
-                .addEntity(request)
+        Libralink.EnvelopeContent envelopeContent = EnvelopeContentBuilder.newBuilder()
+                .addEntity(Any.pack(request))
                 .build();
 
-        Envelope envelope = Envelope.builder()
+        Libralink.Envelope envelope = EnvelopeBuilder.newBuilder()
                 .addContent(envelopeContent)
                 .addId(UUID.randomUUID())
                 .build();
 
-        Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, SignatureReason.IDENTITY);
-        String body = JsonUtils.toJson(signedEnvelope);
-        LOG.info(body);
+        Libralink.Envelope signedEnvelope = SignatureHelper.sign(envelope, PAYER_CRED, Libralink.SignatureReason.IDENTITY);
+        String base64Body = Base64.getEncoder().encodeToString(signedEnvelope.toByteArray());
+        LOG.info("Base64 - " + base64Body);
+        LOG.info("Json - " + JsonUtils.toJson(signedEnvelope));
 
         mockMvc.perform(post("/protocol/agent/balance")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
+                    .content(base64Body))
                 .andExpect(status().isOk());
     }
 }
